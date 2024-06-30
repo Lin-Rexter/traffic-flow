@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from "react";
 import LocationAggregatorMap from '../../components/map';
 /*
-'use client'
 import dynamic from "next/dynamic";
 import { Provider as ReduxProvider } from "react-redux";
 import store from "../store/page";
