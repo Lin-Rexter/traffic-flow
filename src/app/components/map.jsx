@@ -99,7 +99,7 @@ const LocationAggregatorMap = ({
           className=""
           controller={true}
           mapboxAccessToken={mapbox_api_key}
-          mapStyle="mapbox://styles/petherem/cl2hdvc6r003114n2jgmmdr24"
+          mapStyle="mapbox://styles/retex/clybowush00n301pr4vuz4fbf"
         >
         </Map>
 
