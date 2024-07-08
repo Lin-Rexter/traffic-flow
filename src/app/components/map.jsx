@@ -1,7 +1,7 @@
 'use client'
 //import { env } from 'node:process';
 import React, { useState } from 'react';
-import Map from "react-map-gl";
+import {Source, Layer, Map} from "react-map-gl";
 import DeckGL from 'deck.gl';
 import { HexagonLayer } from 'deck.gl';
 //import "mapbox-gl/dist/mapbox-gl.css";
@@ -98,7 +98,7 @@ const LocationAggregatorMap = ({
           className=""
           controller={true}
           mapboxAccessToken={mapbox_api_key}
-          mapStyle="mapbox://styles/retex/clybowush00n301pr4vuz4fbf"
+          mapStyle="mapbox://styles/retex/clybowush00n301pr4vuz4fbf/draft"
         >
         </Map>
 
