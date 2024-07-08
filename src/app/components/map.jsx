@@ -32,7 +32,6 @@ const Map = () => {
     </ReactReduxContext.Consumer>
   );
 };
-
 export default Map;
 */
 
