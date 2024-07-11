@@ -1,9 +1,9 @@
 'use client'
 //import { env } from 'node:process';
 import React, { useState } from 'react';
-import {Source, Layer, Map} from "react-map-gl";
+import { Source, Layer, Map } from "react-map-gl";
 import DeckGL from 'deck.gl';
-import { HexagonLayer } from 'deck.gl';
+import { HexagonLayer, LineLayer, PathLayer, GeoJsonLayer } from 'deck.gl';
 //import "mapbox-gl/dist/mapbox-gl.css";
 //import KeplerGl from "kepler.gl";
 //import { ReactReduxContext } from "react-redux";
@@ -51,6 +51,7 @@ const LocationAggregatorMap = ({
 
   // creating tooltip
   function getTooltip({ object }) {
+    /*
     if (!object) {
       return null;
     }
@@ -62,9 +63,19 @@ const LocationAggregatorMap = ({
         latitude: ${Number.isFinite(lat) ? lat.toFixed(6) : ""}
         longitude: ${Number.isFinite(lng) ? lng.toFixed(6) : ""}
         ${count} locations here`;
+    */
+    return object && `路段名稱: ${object.properties.name}
+    路段代碼: ${object.properties.id}
+    壅塞程度: ${object.properties.describe}
+    平均旅行速度: ${object.properties.travel_speed}KM/Hr (Ex: 數值250表示為道路封閉)
+    平均旅行時間: ${object.properties.travel_time}秒
+    更新時間: ${object.properties.update_time}
+    更新週期: ${object.properties.update_interval}秒
+    `;
   }
 
-  const layers = [
+  /*
+  const layers_Hex = [
     new HexagonLayer({
       id: "heatmap",
       colorRange,
@@ -84,11 +95,65 @@ const LocationAggregatorMap = ({
       },
     }),
   ];
+  */
+  /*
+  const layer_Line = [
+    new LineLayer({
+      id: 'LineLayer',
+      data: 'https://raw.githubusercontent.com/visgl/deck.gl-data/master/website/bart-segments.json',
+      getColor: (d) => [Math.sqrt(d.inbound + d.outbound), 140, 0],
+      getSourcePosition: (d) => d.from.coordinates,
+      getTargetPosition: (d) => d.to.coordinates,
+      getWidth: 12,
+      pickable: true
+    })
+  ]
+  */
+
+  /*
+  const Layer_Path = [
+    new PathLayer({
+      id: 'PathLayer',
+      data: 'https://raw.githubusercontent.com/visgl/deck.gl-data/master/website/bart-lines.json',
+
+      getColor: (d) => {
+        const hex = d.color;
+        // convert to RGB
+        return hex.match(/[0-9a-f]{2}/g).map(x => parseInt(x, 16));
+      },
+      getPath: (d) => d.path,
+      getWidth: 100,
+      pickable: true
+    })
+  ]
+  */
+
+  const Layer_GeoJson = [
+    new GeoJsonLayer({
+      id: 'GeoJsonLayer',
+      data: data, //'https://raw.githubusercontent.com/visgl/deck.gl-data/master/website/bart.geo.json',
+      stroked: false,
+      filled: true,
+      pointType: 'circle+text+icon',
+      pickable: true,
+      getFillColor: [160, 160, 180, 200],
+      getLineColor: (f) => {
+        const hex = f.properties.color;
+        // convert to RGB
+        return hex ? hex.match(/[0-9a-f]{2}/g).map(x => parseInt(x, 16)) : [0, 0, 0];
+      },
+      getText: (f) => f.properties.name,
+      getLineWidth: 25,
+      getPointRadius: 4,
+      getTextSize: 20,
+      textFontWeight: 'bold',
+    })
+  ]
 
   return (
     <div>
       <DeckGL
-        layers={layers}
+        layers={Layer_GeoJson}
         effects={[lightingEffect]}
         initialViewState={INITIAL_VIEW_STATE}
         controller={true}
@@ -98,12 +163,13 @@ const LocationAggregatorMap = ({
           className=""
           controller={true}
           mapboxAccessToken={mapbox_api_key}
-          mapStyle="mapbox://styles/retex/clybowush00n301pr4vuz4fbf/draft"
+          mapStyle="mapbox://styles/retex/clybowush00n301pr4vuz4fbf"
         >
         </Map>
 
         {/* FLOATING CONTROLLER */}
 
+        {/*
         <div className="absolute bg-slate-900 text-white min-h-[200px] h-auto w-[250px] top-10 left-5 rounded-lg p-4 text-sm">
           <div className="flex flex-col">
             <h2 className="font-bold text-xl uppercase mb-1">Map controller</h2>
@@ -131,6 +197,7 @@ const LocationAggregatorMap = ({
             </p>
           </div>
         </div>
+        */}
       </DeckGL>
     </div>
   )
