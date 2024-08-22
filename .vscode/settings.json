@@ -1,4 +1,17 @@
 {
-    "IDX.aI.enableInlineCompletion": true,
-    "IDX.aI.enableCodebaseIndexing": true
+  "IDX.aI.enableInlineCompletion": true,
+  "IDX.aI.enableCodebaseIndexing": true,
+  "editor.defaultFormatter": null,
+  "[javascript]": {
+    "editor.defaultFormatter": "vscode.typescript-language-features"
+  },
+  "editor.formatOnSave": false,
+  "[javascriptreact]": {
+    "editor.defaultFormatter": "vscode.typescript-language-features"
+  },
+  "editor.unicodeHighlight.invisibleCharacters": true,
+  "editor.unicodeHighlight.ambiguousCharacters": true,
+  "cSpell.words": [
+    "Supabase"
+  ]
 }
