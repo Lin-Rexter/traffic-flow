@@ -1,9 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { CheckError, CheckOptions, CheckFilters, CheckModifiers } from './check';
-
+import { has } from '@/lib/utils'
 
 // = = = = = = = = = = = = = = = = = = =
-// Supabase CRUD Methods (尚未完成)
+// Supabase CRUD Methods
 // = = = = = = = = = = = = = = = = = = =
 export class Supabase_CRUD {
     constructor(table = null, Url_and_Key = null) {
@@ -21,6 +21,16 @@ export class Supabase_CRUD {
         return await client.from(new_table ?? this.table);
     }
 
+    async response({ data = null, error = null }) {
+        error && console.error(error);
+
+        if (has(data, 'data') && has(data, 'error')) {
+            return data
+        }
+
+        return { data: data, error: error };
+    }
+
     // [R] - Read [建置完成 ✅]
     async read({ table = null, columns = '*', options = {}, filters = {}, modifiers = {} }) {
         try {
@@ -29,9 +39,9 @@ export class Supabase_CRUD {
             // 檢查參數
             const { data, error } = CheckOptions(columns, options, 'select')
             if (error) {
-                return { data: null, error: error }
+                return await this.response({ error: error })
             }
-            console.log(data)
+            //console.log(data)
 
             table_query = table_query.select(...data)
 
@@ -43,17 +53,21 @@ export class Supabase_CRUD {
             })
 
             // 檢查修改器
-            const result = CheckModifiers({
+            let Result = CheckModifiers({
                 query: table_query,
                 modifier_array: modifiers,
                 method: 'select'
             })
             //console.log(result)
 
-            return await result;
+            // 轉換成 Array 格式
+            Result = await Result
+            //Result = Object.keys(Result).map((key) => Result[key])
+
+            return await this.response({ data: Result });
         } catch (e) {
             console.error(e);
-            return { data: null, error: e.message };
+            return await this.response({ error: e.message });
         }
     }
 
@@ -65,7 +79,7 @@ export class Supabase_CRUD {
             // 檢查參數
             const { data, error } = CheckOptions(values, options, 'insert')
             if (error) {
-                return { data: null, error: error }
+                return await this.response({ error: error })
             }
 
             table_query = table_query.insert(...data)
@@ -78,10 +92,10 @@ export class Supabase_CRUD {
             })
             //console.log(result)
 
-            return await result;
+            return await this.response({ data: await result });
         } catch (e) {
             console.error(e);
-            return { data: null, error: e.message };
+            return await this.response({ error: e.message });
         }
     }
 
@@ -93,7 +107,7 @@ export class Supabase_CRUD {
             // 檢查參數
             const { data, error } = CheckOptions(values, options, 'update')
             if (error) {
-                return { data: null, error: error }
+                return await this.response({ error: error })
             }
 
             table_query = table_query.update(...data)
@@ -113,14 +127,14 @@ export class Supabase_CRUD {
             })
             //console.log(result)
 
-            return await result;
+            return await this.response({ data: await result });
         } catch (e) {
             console.error(e);
-            return { data: null, error: e.message };
+            return await this.response({ error: e.message });
         }
     }
 
-    // [UI] - Update with Insert (符合條件則更新，否則插入)
+    // [UI] - Update with Insert (符合條件則更新，否則插入) [建置完成 ✅]
     // data: 必須包含id
     async upsert({ table = null, values, options = {}, modifiers = {} }) {
         try {
@@ -129,7 +143,7 @@ export class Supabase_CRUD {
             // 檢查參數
             const { data, error } = CheckOptions(values, options, 'upsert')
             if (error) {
-                return { data: null, error: error }
+                return await this.response({ error: error })
             }
 
             //console.log(data)
@@ -144,14 +158,14 @@ export class Supabase_CRUD {
             })
             //console.log(result)
 
-            return await result;
+            return await this.response({ data: await result });
         } catch (e) {
             console.error(e);
-            return { data: null, error: e.message };
+            return await this.response({ error: e.message });
         }
     }
 
-    // [D] - Delete
+    // [D] - Delete [建置完成 ✅]
     async delete({ table = null, options = {}, filters = {}, modifiers = {} }) {
         try {
             var table_query = await this.db({ new_table: table })
@@ -159,7 +173,7 @@ export class Supabase_CRUD {
             // 檢查參數
             const { data, error } = CheckOptions(null, options, 'delete')
             if (error) {
-                return { data: null, error: error }
+                return await this.response({ error: error })
             }
 
             table_query = (data.length > 0) ? table_query.delete(...data) : table_query.delete()
@@ -179,23 +193,18 @@ export class Supabase_CRUD {
             })
             //console.log(result)
 
-            return await result;
+            return await this.response({ data: await result });
         } catch (e) {
             console.error(e);
-            return { data: null, error: e.message };
+            return await this.response({ error: e.message });
         }
     }
 
-    // Count Data
+    // Count Data [建置完成 ✅]
     async count({ table = null, algorithm = 'exact' }) {
-        const { data, error } = await this.db({ new_table: table })
+        const result = await this.db({ new_table: table })
             .select('*', { count: algorithm, head: true })
 
-        if (error) {
-            console.error('Error deleting data:', error);
-            return null;
-        }
-
-        return data[0].count;
+        return await this.response({ data: result });
     }
 }
