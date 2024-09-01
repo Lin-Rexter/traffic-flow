@@ -1,4 +1,4 @@
-export default async function Fetch_Data(AccessToken, urls = [String], isHistory = false) {
+export default async function Fetch_Data(AccessToken, urls, isHistory = false) {
     /*
         // = = = = = 參數介紹 = = = = =
         - Fetch_Data_Result: 請求的資料結果
