@@ -59,10 +59,12 @@ export const useGetTraffic = (disabled = false, test = true) => {
     const fetcher = async url => {
         const res = await fetch(url)
 
+        const response = await res.json()
+
         if (!res.ok) {
             const error = new Error('獲取資料發生錯誤!')
 
-            error.info = await res.json()
+            error.info = response.error
             error.status = res.status
 
             if (error.info.status.includes(429)) {
@@ -74,11 +76,19 @@ export const useGetTraffic = (disabled = false, test = true) => {
             throw error
         }
 
-        return res.json()
+        if (response.error) {
+            const error = new Error(response.error)
+            error.info = response.error
+            error.status = res.status
+            throw error
+        }
+
+        return response
     }
 
     var warn = null
-    var { data, error } = useSWR(`/api/tdx/new?test=${!test}`, fetcher, { refreshInterval: 60 * 1000 }) // 每60秒更新一次資料 
+    //var { data, error } = useSWR(`/api/tdx/new?test=${!test}`, fetcher, { refreshInterval: 60 * 1000 }) // 每60秒更新一次資料 
+    var { data, error } = useSWR(`/api/tdx/old?days=7`, fetcher, { refreshInterval: 60 * 1000 }) // 每60秒更新一次資料 
 
     if (!IsAPIRateLimit) {
         warn = null
