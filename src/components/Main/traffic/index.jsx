@@ -67,21 +67,22 @@ const Map = ({ off = false, getToken = false }) => {
         return (<Dynamic_LocationAggregatorMap data={null} />)
     } else {
         if (warn) {
-            //console.log("CCCCCCCCCC", warn)
+            //console.log("AAAAAAAAAA", warn)
             return (<Dynamic_LocationAggregatorMap warn={warn} />)
         }
 
         if (error) {
             //console.log("BBBBBBBBBB", error)
-            return (<Dynamic_LocationAggregatorMap error={error.info} />)
+            return (<Dynamic_LocationAggregatorMap error={error} />)
         }
 
         if (data) {
+            //console.log("CCCCCCCCCC", Object.keys(data.data).length)
             const now = new Date();
             const location_time = now.toLocaleString();
             console.log(`${location_time}: 壅塞資料已更新! (每60秒)`);
 
-            return (<Dynamic_LocationAggregatorMap data={(Object.keys(data).length == 1) ? data : null} />)
+            return (<Dynamic_LocationAggregatorMap data={((Object.keys(data.data).length == 1) || !data.error) ? data.data : null} />)
         }
     }
 }
