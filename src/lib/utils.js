@@ -1,10 +1,10 @@
-"use client";
+//"use client";
 //import useSWR from 'swr'
 
-const geojson_url = "/api/tdx";
-
+//const geojson_url = "/api/tdx";
+/*
 export const get_geojson = async() => {
-    /*
+
     const fetcher = (...args) => fetch(...args).then((res) => {
             return res.json();
         }).then((data) => { 
@@ -13,7 +13,6 @@ export const get_geojson = async() => {
         }).catch((err) => {
             console.log('錯誤:', err);
         })
-      */
 
     const options = {
         method: "GET",
@@ -36,3 +35,9 @@ export const get_geojson = async() => {
 
     return fetch_result;
 };
+*/
+
+// 檢查物件是否存在指定屬性
+// hasOwnProperty = Object.prototype.hasOwnProperty
+// 較新版本可用: Object.hasOwn
+export const has = (object, key) => object ? hasOwnProperty.call(object, key) : false;
