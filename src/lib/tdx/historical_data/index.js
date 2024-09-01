@@ -1,161 +1,151 @@
-import Fetch_Data from '@/lib/tdx/fetch_all'
+import util from 'util'
 import { Supabase_CRUD } from '@/lib/supabase/client'
 
 
-/*
-export async function CRUD_Test() {
-    // 測試CRUD
-    if (test) {
-        const columns = [
-            {
-                section_id: '0000',
-                level: '2',
-                update_time: '2024-08-05 04:00:00+00',
-                update_interval: 60,
-                travel_time: 55,
-                travel_speed: 68
-            }, {
-                section_id: '0001',
-                level: '2',
-                update_time: '2024-08-05 04:00:00+00',
-                update_interval: 60,
-                travel_time: 55,
-                travel_speed: 68
-            }
-        ]
-
-        // Result: {data, error}
-        // [C] - Create
-        const Result = await Supabase.insert({
-            values: columns,
-            options: { count: true },
-            modifiers: { csv: false }
-        })
-        
-
-        // [R] - Read
-        const Result = await Supabase.read({
-            columns: 'level',
-            options: { count: true, head: false },
-            filters: { eq: ["section_id", "0001"] },
-            modifiers: { csv: false }
-        })
-        
-
-        // [U] - Update
-        const Result = await Supabase.update({
-            values: { level: 30 },
-            options: { count: true },
-            filters: { eq: ["section_id", "0001"] },
-        })
-        
-
-        // [UI] - Update with Insert (符合條件則更新，否則插入)
-        const Result = await Supabase.upsert({
-            values: { id: 614, level: 30, update_interval: 70 },
-            options: { count: true } // onConflict
-        })
-        
-
-        // [D] - Delete
-        const Result = await Supabase.delete({
-            options: { count: true },
-            filters: { eq: ["section_id", "0001"] },
-        })
-
-        return Result
-    }
-}
-*/
-
-// 儲存 TDX History Data
-export async function Store_TDX_History({ date, accessToken = null, test = false }) {
-    const Supabase = new Supabase_CRUD('Livedata')
-
-    const Date_Search = `Dates=${date}`
-    console.log(Date_Search)
-    const history_urls = {
-        history_freeway_live_url: `https://tdx.transportdata.tw/api/historical/v2/Historical/Road/Traffic/Live/Freeway?${Date_Search}&format=JSONL`, // 各個路段的壅塞程度
+// 取得 TDX History Data
+export async function Get_TDX_Historical({ date }) {
+    // 回應格式
+    var Return_Result = {
+        data: null,
+        error: null
     }
 
-    const [Fetch_Result, Fetch_Info] = await Fetch_Data(accessToken, history_urls, true)
-    const live_result = Fetch_Result
-    const [fetch_status_code, fetch_data, fetch_error, fetch_error_format] = Fetch_Info
+    // 檢查日期格式
+    const validation_date = util.types.isDate(date) ? date : null
+    if (validation_date == null) {
+        Return_Result.error = "[Get_TDX_Historical] ERROR: 日期格式錯誤!"
+        return Return_Result
+    }
 
-    // 顯示請求回應資訊
-    const fetch_response = `
-        =========壅塞資料取得狀態=========
-        請求狀態碼: ${fetch_status_code}
-        請求回應原始訊息: ${fetch_status_code.every((code) => code != 200) ? JSON.stringify(fetch_data, null, 2) : "無"}
-        請求回應原始錯誤訊息: ${fetch_error.length != 0 ? fetch_error : '無'}
-        請求回應錯誤訊息: ${fetch_error_format.length != 0 ? fetch_error_format : '無'}
-        ================================
-    `.replaceAll(' ', '')
-    console.log(fetch_response)
+    const Date_Search = validation_date.toISOString().split('T')[0]
+    console.log(`\n正在取得'${validation_date}'的TDX壅塞歷史資料...`)
 
-    if (fetch_status_code.every((code) => code == 200)) {
-        // 儲存各個路段ID的壅塞程度、更新時間、更新頻率、旅行時間、旅行速度
-        var Live_Congestion_list = []
-        var LiveTraffics = live_result[0]
-        var Update_Interval = 60
-        LiveTraffics.map((item) => {
-            let section_id = item.SectionID
-            let level = item.CongestionLevel
-            let travel_time = item.TravelTime
-            let update_time = item.SrcUpdateTime
-            let travel_speed = item.TravelSpeed
-            Live_Congestion_list.push(
-                {
-                    section_id: section_id,
-                    level: level,
-                    update_time: update_time,
-                    update_interval: Update_Interval,
-                    travel_time: travel_time,
-                    travel_speed: travel_speed
+    try {
+        const Supabase = new Supabase_CRUD()
+
+        /** - 格式:
+                - [ { SectionID: '', Geometry: [[], []] }, {}...]
+        */
+        var Live_Result = await Supabase.read({
+            table: 'Live_Data',
+            options: { count: true },
+            filters: { eq: ["update_time", new Date(`${Date_Search}T12:00:00`).toISOString()] },
+            modifiers: { csv: false }
+        })
+
+        /** - 格式:
+                - [ { section_id: '', level: '', update_time: '', update_interval: 60, travel_time: '', travel_speed: '' }, {}...]
+        */
+        var Shape_Result = await Supabase.read({
+            table: 'SectionShape_Data'
+        })
+
+        /** - 格式:
+                - [ { SectionID: '', SectionName: '' }, {}...]
+        */
+        var Section_Result = await Supabase.read({
+            table: 'Section_Data'
+        })
+
+        // 檢查是否取得壅塞資料
+        if (Live_Result.count == 0) {
+            Return_Result.error = '[Get_TDX_Historical] ERROR: 取得0筆資料，請確認日期是否有誤!'
+            return Return_Result
+        }
+
+        Return_Result.data = {
+            Live_Result: Live_Result,
+            Shape_Result: Shape_Result,
+            Section_Result: Section_Result
+        }
+
+        // 檢查取得結果是否有誤
+        if (Object.values(Return_Result.data).every((result) => result?.error)) {
+            let Error_msgs = {}
+            Object.entries(Return_Result.data).forEach(([key, value], index) => {
+                if (value.error) {
+                    Error_msgs[key] = value.error;
                 }
-            )
-            /*
-            if (new Date(update_time).toISOString() == new Date('2024-08-05T12:00:00').toISOString()) {
-            }
-            */
-        })
-        //console.log(Live_Congestion_list)
+            })
+            Return_Result.error = ['[Get_TDX_Historical] ERROR: TDX資料取得失敗', JSON.stringify(Error_msgs, null, 2)]
+            return Return_Result
+        }
 
-        // 儲存至資料庫
-        const Result = await Supabase.insert({
-            values: Live_Congestion_list,
-            options: { count: true }
+        // = = = = = = 將各個路段的資訊、經緯度、壅塞程度合併 = = = = = =
+        // 1. [Shape_Result]: 處理路段座標格式
+        var New_Shape_Result = {}
+        Shape_Result.data.forEach((item) => {
+            let SectionID = item.SectionID
+            let Geometry = item.Geometry
+            Geometry.forEach((item, index) => {
+                Geometry[index] = item.map(Number)
+            })
+            New_Shape_Result[SectionID] = Geometry
+        })
+        Shape_Result.data = New_Shape_Result
+
+        // 2. [Section_Result]: 處理路段資訊格式
+        var New_Section_Result = {}
+        Section_Result.data.forEach((item) => {
+            let SectionID = item.section_id
+            let SectionName = item.section_name
+            New_Section_Result[SectionID] = SectionName
+        })
+        //console.log(New_Section_Result)
+        Section_Result.data = New_Section_Result
+
+
+        // 壅塞等級對應的壅塞資訊
+        const Congestion_color = {
+            '1': ['最順暢🔵', '#005ff5'], // 最順暢
+            '2': ['順暢🟢', '#00ff4c'],
+            '3': ['正常🟡', '#ffff37'],
+            '4': ['壅塞🟠', '#ff8000'],
+            '5': ['最壅塞🔴', '#ff0000'], // 最壅塞
+            '-1': ['道路封閉⛔', '#693b3b'] // 道路封閉
+        }
+
+        var Section_GeoJSON = {
+            "type": "FeatureCollection",
+            "features": []
+        }
+
+        const Live_Data = Live_Result.data
+        const Shape_Data = Shape_Result.data
+        const Section_Data = Section_Result.data
+        //console.log(Section_Data)
+        Live_Data.forEach((item) => {
+            let SectionID = item.section_id
+            let Section_Name = Section_Data[SectionID] // 路段名稱
+            //let random_num = Math.round(((Math.random() * 4) + 1)) + '';
+            //console.log(random_num)
+            let congestion_info = Congestion_color[item.level] // 取得壅塞等級對應的壅塞資訊
+            let update_time = item.update_time // 取得更新時間
+            let update_interval = item.update_interval // 更新頻率
+            let travel_time = item.travel_time // 旅行時間
+            let travel_speed = item.travel_speed // 旅行速度
+            let coordinates = Shape_Data[SectionID] // 路段座標
+            Section_GeoJSON.features.push({
+                "type": "Feature",
+                "properties": {
+                    "name": Section_Name,
+                    "id": SectionID,
+                    "describe": congestion_info[0],
+                    "color": congestion_info[1],
+                    "update_time": update_time,
+                    "update_interval": update_interval,
+                    "travel_time": travel_time,
+                    "travel_speed": travel_speed
+                },
+                "geometry": { "type": "MultiLineString", "coordinates": [coordinates] }
+            })
         })
 
-        return Result
+        Return_Result.data = Section_GeoJSON
+        return Return_Result
+    } catch (e) {
+        console.error('[Get_TDX_Historical] ERROR: ', e)
+        Return_Result.error = e.message || e.toString()
+        return Return_Result
     }
-
-    return null
-}
-
-
-export async function Get_TDX_History(date) {
-    const Supabase = new Supabase_CRUD('Livedata')
-
-    const Live_Result = await Supabase.read({
-        options: { count: true },
-        filters: { eq: ["update_time", new Date(`${date}T12:00:00`).toISOString()] },
-        modifiers: { csv: false }
-    })
-
-    // 轉換成 Array 格式
-    const Result = Object.keys(Live_Result).map((key) => Live_Result[key])
-
-    var Live_Congestion_list = {}
-    Result.map((item) => {
-        let section_id = item.section_id
-        let level = item.level
-        let update_time = item.update_time
-        let update_interval = item.update_interval
-        let travel_time = item.travel_time
-        let travel_speed = item.travel_speed
-        Live_Congestion_list[section_id] = [level, update_time, update_interval, travel_time, travel_speed]
-    })
-
-    return Live_Congestion_list;
 }
