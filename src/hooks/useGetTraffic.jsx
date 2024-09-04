@@ -1,9 +1,15 @@
 "use client";
-import { useState, useEffect } from "react";
-import useSWR from 'swr'
+import { useContext, useState, useEffect } from "react";
+import useSWR, { mutate } from 'swr'
+import { TimeContext } from "@/context";
 
+const clearCache = () => mutate(
+    () => true,
+    undefined,
+    { revalidate: false }
+)
 
-export const useGetTraffic = (disabled = false, test = true) => {
+export const useGetTraffic = (disabled = false, useExistToken = true, time = 0) => {
     if (disabled) {
         return [null, null, null]
     }
@@ -87,8 +93,14 @@ export const useGetTraffic = (disabled = false, test = true) => {
     }
 
     var warn = null
-    //var { data, error } = useSWR(`/api/tdx/new?test=${!test}`, fetcher, { refreshInterval: 60 * 1000 }) // 每60秒更新一次資料 
-    var { data, error } = useSWR(`/api/tdx/old?days=7`, fetcher, { refreshInterval: 60 * 1000 }) // 每60秒更新一次資料 
+    // 每60秒更新一次資料 
+    console.log("取得時間3:", time)
+    //clearCache()
+    if (time == 0) {
+        var { data, error } = useSWR(`/api/tdx/new?test_token=${useExistToken}`, fetcher, { refreshInterval: 60 * 1000 })
+    } else {
+        var { data, error } = useSWR(`/api/tdx/old?days=${Math.abs(time / 24)}`, fetcher, { refreshInterval: 60 * 1000 })
+    }
 
     if (!IsAPIRateLimit) {
         warn = null
