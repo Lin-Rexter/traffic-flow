@@ -14,10 +14,11 @@ import { Get_TDX_Live } from '@/lib/tdx/live_data'
 export async function GET(request) {
     try {
         const { searchParams } = new URL(request.url)
+        const isTrue = (Params) => searchParams.get(Params) === 'true'
 
         // 取得TDX壅塞即時資料
         const TDX_Live_Result = await Get_TDX_Live({
-            useExistToken: searchParams.get('test_token') === 'true'
+            useExistToken: isTrue('test_token')
         })
 
         return NextResponse.json({ ...TDX_Live_Result }, { status: 200 }) // { status: 200 }可省略
