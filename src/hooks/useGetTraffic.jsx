@@ -1,7 +1,6 @@
 "use client";
 import { useContext, useState, useEffect } from "react";
 import useSWR, { mutate } from 'swr'
-import { TimeContext } from "@/context";
 
 const clearCache = () => mutate(
     () => true,
@@ -92,15 +91,19 @@ export const useGetTraffic = (disabled = false, useExistToken = true, time = 0) 
         return response
     }
 
-    var warn = null
-    // 每60秒更新一次資料 
-    console.log("取得時間3:", time)
     //clearCache()
-    if (time == 0) {
-        var { data, error } = useSWR(`/api/tdx/new?test_token=${useExistToken}`, fetcher, { refreshInterval: 60 * 1000 })
+    var fetch_url = null
+    if (time < 0) {
+        fetch_url = `/api/tdx/old?days=${Math.abs(time / 24)}`
+    } else if (time > 0) {
+        fetch_url = `/api/tdx/forecast?days=${time / 24}`
     } else {
-        var { data, error } = useSWR(`/api/tdx/old?days=${Math.abs(time / 24)}`, fetcher, { refreshInterval: 60 * 1000 })
+        fetch_url = `/api/tdx/new?test_token=${useExistToken}`
     }
+
+    // 每60秒更新一次資料 
+    var warn = null
+    var { data, error } = useSWR(fetch_url, fetcher, { refreshInterval: 60 * 1000 })
 
     if (!IsAPIRateLimit) {
         warn = null
