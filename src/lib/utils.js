@@ -45,6 +45,6 @@ export const has = (object, key) => object ? hasOwnProperty.call(object, key) : 
 // 相差天數
 export const DiffDays = (date1, date2) => {
     const diffTime = date2 - date1;
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
     return diffDays;
 }
