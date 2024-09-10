@@ -70,7 +70,7 @@ const Timeline = () => {
         // 新增壅塞天數
         Object.values([...his_timeList, ...forecast_timeList]).forEach((item, index) => {
             let diffDays = DiffDays(new Date(item), new Date())
-            if (Math.abs(diffDays) > 365) return;
+            if ((Math.abs(diffDays) == 0) || (Math.abs(diffDays) > 365)) return;
 
             // 小於0表示預測資料天數
             if (diffDays < 0) {
