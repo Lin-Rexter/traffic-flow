@@ -44,12 +44,7 @@ const Timeline = () => {
     */
 
     var timeMarkers = [
-        { label: "即時", value: 0 },
-        { label: "1小時", value: 1 },
-        { label: "3小時", value: 3 },
-        { label: "6小時", value: 6 },
-        { label: "12小時", value: 12 },
-        { label: "1天", value: 24 },
+        { label: "即時", value: 0 }
     ]
 
     // 初始時間軸控制鈕定位到即時
@@ -67,12 +62,23 @@ const Timeline = () => {
     }, [time_len])
 
     // 新增時間軸刻度
-    const Date_list = GetTDXDate();
-    if (Date_list?.data.length > 0) {
-        const timeList = Date_list.data.sort().reverse()
-        Object.values(timeList).forEach((item, index) => {
+    const [Forecast_Date_list, His_Date_list] = GetTDXDate().data;
+    if (Forecast_Date_list?.length > 0 && His_Date_list?.length > 0) {
+        const his_timeList = His_Date_list.sort().reverse()
+        const forecast_timeList = Forecast_Date_list.sort()
+
+        // 新增壅塞天數
+        Object.values([...his_timeList, ...forecast_timeList]).forEach((item, index) => {
             let diffDays = DiffDays(new Date(item), new Date())
-            timeMarkers.unshift({ label: `${diffDays}天前`, value: -(diffDays * 24), date: new Date(item).toLocaleString('zh-Hant-TW')})
+            if (Math.abs(diffDays) > 365) return;
+
+            // 小於0表示預測資料天數
+            if (diffDays < 0) {
+                diffDays = Math.abs(diffDays)
+                timeMarkers.push({ label: `${diffDays}天後`, value: (diffDays * 24), date: new Date(item).toLocaleString('zh-Hant-TW') })
+            } else if (diffDays > 0) {
+                timeMarkers.unshift({ label: `${Math.abs(diffDays)}天前`, value: -(diffDays * 24), date: new Date(item).toLocaleString('zh-Hant-TW') })
+            }
         })
     }
 
@@ -113,7 +119,7 @@ const Timeline = () => {
         };
     }, [isDragging]);
 
-    return ((Date_list?.data.length > 0) && (
+    return (((Forecast_Date_list?.length > 0) && (His_Date_list?.length > 0)) && (
         <div className="w-2/3 max-w-3xl">
             <div className="relative h-4 bg-blue-200 rounded-full cursor-pointer select-none"
                 ref={timelineRef}
@@ -126,7 +132,7 @@ const Timeline = () => {
                 {timeMarkers.map((marker, index) => (
                     <div key={index}
                         className="absolute top-7 transform -translate-x-1/2 text-xs"
-                        style={{ left: `${(index / (timeMarkers.length - 1)) * 100}%` }}>
+                        style={{ left: `${(index / (timeMarkers.length - 1)) * 100}%`, 'white-space': 'nowrap' }}>
                         {marker.label}
                     </div>
                 ))}
@@ -134,7 +140,7 @@ const Timeline = () => {
                 {/* 控制鈕 */}
                 <Popover content={Content(timeMarkers[selectedIndex].label, timeMarkers[selectedIndex].date || new Date().toLocaleString('zh-Hant-TW'))} trigger="hover" placement="top">
                     <div className="absolute top-[-5] w-7 h-7 bg-white rounded-full"
-                        style={{ left: `calc(${(selectedIndex / (timeMarkers.length - 1)) * 100}% - 10px)` }} />
+                        style={{ left: `calc(${(selectedIndex / (timeMarkers.length - 1)) * 100}% - 2%)` }} />
                 </Popover>
             </div>
         </div>
