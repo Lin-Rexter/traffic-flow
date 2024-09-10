@@ -8,7 +8,7 @@ Date.prototype.addHours = function (h) {
     return this;
 }
 
-// 取得儲存的TDX歷史壅塞資料日期
+// 取得儲存的TDX壅塞資料日期
 export const GetTDXDate = () => {
     var response = {
         data: [],
@@ -21,32 +21,41 @@ export const GetTDXDate = () => {
         const [Dates, setDates] = useState([])
         useEffect(() => {
             const fetch_supabase_date = async () => {
-                const Result = await Supabase.read({
+                const His_Result = await Supabase.read({
                     table: 'Live_Data',
                     columns: 'update_time',
                     options: { count: true },
                 })
-                setDates(Result)
+                const Forecast_Result = await Supabase.read({
+                    table: 'Live_Forecast_Data',
+                    columns: 'update_time',
+                    options: { count: true },
+                })
+                setDates([His_Result, Forecast_Result])
             }
             fetch_supabase_date()
         }, [])
 
         if (Dates) {
-            const { data, count, error } = Dates
+            const [His_Result, Live_Forecast_Data] = Dates
 
-            if (error) {
-                response.error = error
+            if (Live_Forecast_Data.error || His_Result.error) {
+                response.error = Live_Forecast_Data.error || His_Result.error
                 return response
             }
 
-            if (count > 0) {
-                var temp_date = []
+            if ((Live_Forecast_Data.count > 0) && (His_Result.count > 0)) {
+                var Forecast_temp_date = []
+                var His_temp_date = []
 
-                data.forEach((item) => {
-                    temp_date.push(new Date(item.update_time).addHours(0).toISOString())
+                Live_Forecast_Data.data.forEach((item) => {
+                    Forecast_temp_date.push(new Date(item.update_time).addHours(0).toISOString())
+                })
+                His_Result.data.forEach((item) => {
+                    His_temp_date.push(new Date(item.update_time).addHours(0).toISOString())
                 })
 
-                response.data = Array.from(new Set(temp_date))
+                response.data = [Array.from(new Set(Forecast_temp_date)), Array.from(new Set(His_temp_date))]
 
                 return response
             }
