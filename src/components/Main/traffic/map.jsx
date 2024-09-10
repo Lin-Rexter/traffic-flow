@@ -139,7 +139,7 @@ const LocationAggregatorMap = ({ off, useExistToken }) => {
                                     <p>系統訊息</p>
                                 </div>
                                 <div className="mb-1 text-base font-normal">
-                                    <p>{`正在載入 ${(selectedTime == 0) ? '即時' : Math.abs(selectedTime / 24) + '天前'} 之資料`}</p>
+                                    <p>{`正在載入 ${(selectedTime == 0) ? '即時' : Math.abs(selectedTime / 24) + ((selectedTime < 0) ? '天前' : '天後')} 之資料`}</p>
                                 </div>
                             </div>
                             <Toast.Toggle />
