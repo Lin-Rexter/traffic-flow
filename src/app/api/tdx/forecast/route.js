@@ -5,11 +5,15 @@ import { Get_TDX_Forecast } from '@/lib/tdx/forecast_data'
 export async function GET(request) {
     try {
         const { searchParams } = new URL(request.url)
-        const isTrue = (Params) => searchParams.get(Params) === 'true'
+        const Days = searchParams.get('days')
+
+        // 取得指定天數前的日期(不包含時間)
+        const days_millisecond = (days) => days * 24 * 60 * 60 * 1000
+        const past_date = new Date(Date.now() + days_millisecond(Number(Days)))
 
         // 取得TDX壅塞預測資料
         const TDX_Forecast_Result = await Get_TDX_Forecast({
-            useExistToken: isTrue('test_token')
+            date: past_date
         })
 
         return NextResponse.json({ ...TDX_Forecast_Result }, { status: 200 })
