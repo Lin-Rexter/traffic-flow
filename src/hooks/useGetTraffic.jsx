@@ -93,12 +93,13 @@ export const useGetTraffic = (disabled = false, useExistToken = true, time = 0) 
 
     //clearCache()
     var fetch_url = null
+    //console.log("time", time)
     if (time < 0) {
         fetch_url = `/api/tdx/old?days=${Math.abs(time / 24)}`
     } else if (time > 0) {
         fetch_url = `/api/tdx/forecast?days=${time / 24}`
     } else {
-        fetch_url = `/api/tdx/new?test_token=${useExistToken}`
+        fetch_url = `/api/tdx/new?test_token=${useExistToken}`  
     }
 
     // 每60秒更新一次資料 
