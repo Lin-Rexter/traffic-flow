@@ -1,8 +1,7 @@
 import util from 'util'
 import GetAccessToken from '@/lib/tdx/auth'
-import Fetch_Data from '@/lib/tdx/fetch_all'
+import Fetch_Data from '@/lib/tdx/fetch_TDX'
 import { Supabase_CRUD } from '@/lib/supabase/client'
-import { ColumnLayer } from 'deck.gl'
 
 
 // 取得 TDX History Data
@@ -37,23 +36,16 @@ export async function Store_TDX_Historical({ date, useExistToken = true }) {
         }
 
         // 取得所有選擇的TDX資料
-        const [Fetch_Result, Fetch_Info] = await Fetch_Data(AccessToken, real_time_urls, true)
+        const [Fetch_Result, Fetch_Info] = await Fetch_Data({
+            AccessToken: AccessToken,
+            urls: real_time_urls,
+            isHistory: true
+        })
         const [live_result] = Fetch_Result
-        const [fetch_status_code, fetch_data, fetch_error, fetch_error_format] = Fetch_Info
 
-        // 顯示請求回應資訊
-        const fetch_response = `
-        =========壅塞資料取得狀態=========  
-        請求狀態碼: ${fetch_status_code}
-        請求回應原始訊息: ${fetch_status_code.every((code) => code != 200) ? JSON.stringify(fetch_data, null, 2) : "無"}
-        請求回應原始錯誤訊息: ${fetch_error.length != 0 ? fetch_error : '無'}
-        請求回應錯誤訊息: ${fetch_error_format.length != 0 ? fetch_error_format : '無'}
-        ================================
-        `.replaceAll(' ', '')
-        console.log(fetch_response)
 
         // 檢查是否成功請求資料
-        if (fetch_status_code.every((code) => code == 200)) {
+        if (Fetch_Info.fetch_OK) {
             // 處理live_result資料
             const live_result_list = []
             live_result.forEach((item) => {

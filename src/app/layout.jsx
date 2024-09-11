@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import dynamic from "next/dynamic";
 import { Inter } from "next/font/google";
+import localFont from 'next/font/local'
 import "@/styles/globals.css";
 import { ThemeProvider } from 'next-themes'
 import NextTopLoader from 'nextjs-toploader';
@@ -29,6 +30,12 @@ const DynamicFooter = dynamic(
     }
 );
 
+const myFont = localFont({
+    src: '../../public/fonts/NaikaiFont-Regular-Lite.ttf',
+    display: 'swap',
+    preload: true
+})  
+
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
@@ -39,7 +46,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
     return (
-        <html lang="zh-Hant-TW" suppressHydrationWarning>
+        <html lang="zh-Hant-TW" className={myFont.className} suppressHydrationWarning>
             <body className="h-screen">
                 <Suspense fallback={<Loading />} className={inter.className}>
                     <Providers>

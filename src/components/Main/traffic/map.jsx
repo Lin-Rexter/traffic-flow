@@ -1,5 +1,5 @@
 'use client'
-import React, { useContext, useState, useEffect } from 'react';
+import React, { useContext, useState, useEffect, useCallback } from 'react';
 import { Source, Layer, Map, Marker } from "react-map-gl"; // 替代方案: 'react-map-gl/maplibre'
 import "mapbox-gl/dist/mapbox-gl.css";
 //import 'maplibre-gl/dist/maplibre-gl.css';
@@ -12,8 +12,10 @@ import {
     colorRange,
 } from "@/lib/map/mapconfig.js";
 import { Layer_GeoJson } from "@/lib/map/layers.js"
+import { Toast_Component } from "@/components/utils/toast";
+import { Info_Component } from "@/components/Main/traffic/info_drawer.jsx";
 import { useGetTraffic } from "@/hooks/useGetTraffic";
-import { useTime } from "@/context";
+import { useTime, useDrawer } from "@/context";
 
 
 // 取得MapBox金鑰
@@ -22,10 +24,23 @@ const mapbox_api_key = process.env.NEXT_PUBLIC_MAPBOX_TOKENS;
 
 // 設置視覺化地圖內容
 var last_data = null
+//var [data, error, warn] = [null, null, null]
 const LocationAggregatorMap = ({ off, useExistToken }) => {
     // 取得時間軸指定日期
     const { selectedTime } = useTime();
-    //console.log("selectedTime", selectedTime)
+    // 取得開啟壅塞詳細側邊欄狀態
+    const { showDrawer, setShowDrawer } = useDrawer();
+
+    // 儲存點擊的路段資訊
+    const [coordinate, setCoordinate] = useState([0, 0]);
+    const [color, setColor] = useState("");
+    const [describe, setDescribe] = useState("");
+    const [id, setId] = useState("");
+    const [name, setName] = useState("");
+    const [travel_speed, setTravel_speed] = useState("");
+    const [travel_time, setTravel_time] = useState("");
+    const [update_interval, setUpdate_interval] = useState("");
+    const [update_time, setUpdate_time] = useState("");
 
     // 取得壅塞資料
     const [data, error, warn] = useGetTraffic(off, useExistToken, selectedTime)
@@ -51,9 +66,28 @@ const LocationAggregatorMap = ({ off, useExistToken }) => {
     平均旅行速度: ${object.properties.travel_speed}KM/Hr (Ex: 數值250表示為道路封閉)
     平均旅行時間: ${object.properties.travel_time}秒
     更新時間: ${object.properties.update_time}
-    更新週期: ${object.properties.update_interval}秒
+    更新頻率: ${object.properties.update_interval}秒
     `;
     }
+
+
+    const onClick = useCallback((info, event) => {
+        let section_info = info?.object?.properties
+        if (section_info) {
+            console.log(section_info)
+            setCoordinate(info.coordinate)
+            setColor(section_info.color)
+            setDescribe(section_info.describe)
+            setId(section_info.id)
+            setName(section_info.name)
+            setTravel_speed(section_info.travel_speed)
+            setTravel_time(section_info.travel_time)
+            setUpdate_interval(section_info.update_interval)
+            setUpdate_time(section_info.update_time)
+            setShowDrawer(true)
+        }
+    }, []);
+
 
     return (
         <div className="grid h-full w-full">
@@ -65,6 +99,7 @@ const LocationAggregatorMap = ({ off, useExistToken }) => {
                 controller={true}
                 getTooltip={getTooltip}
                 style={{ width: '100%', height: '100%' }}
+                onClick={onClick}
             >
                 {/* 以MapBox地圖為基底 */}
                 <Map
@@ -77,76 +112,43 @@ const LocationAggregatorMap = ({ off, useExistToken }) => {
                     <Marker longitude={121} latitude={23.5} color="red" />
                 </Map>
             </DeckGL>
-            {warn && (
-                <Toast>
-                    <div className="fixed top-24 right-4 z-[9999] max-w-xs p-4 text-gray-500 bg-white rounded-lg shadow dark:text-gray-400 dark:bg-gray-800">
-                        <div className="flex items-start">
-                            <div className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-cyan-100 text-cyan-500 dark:bg-cyan-900 dark:text-cyan-300">
-                                <svg className="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 20">
-                                    <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.147 15.085a7.159 7.159 0 0 1-6.189 3.307A6.713 6.713 0 0 1 3.1 15.444c-2.679-4.513.287-8.737.888-9.548A4.373 4.373 0 0 0 5 1.608c1.287.953 6.445 3.218 5.537 10.5 1.5-1.122 2.706-3.01 2.853-6.14 1.433 1.049 3.993 5.395 1.757 9.117Z" />
-                                </svg>
-                                <span className="sr-only">警告訊息</span>
-                            </div>
-                            <div className="ml-3 text-sm font-normal">
-                                <div className="mb-1 text-base font-semibold text-gray-900 dark:text-white">
-                                    <p>警告訊息</p>
-                                </div>
-                                <div className="mb-1 text-sm font-normal">
-                                    <p>{warn}</p>
-                                </div>
-                            </div>
-                            <Toast.Toggle />
-                        </div>
-                    </div>
-                </Toast>
-            )}
-            {error && (
-                <Toast>
-                    <div className="fixed top-24 right-4 z-[9999] max-w-xs p-4 text-gray-500 bg-white rounded-lg shadow dark:text-gray-400 dark:bg-gray-800">
-                        <div className="flex items-start">
-                            <div className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-cyan-100 text-cyan-500 dark:bg-cyan-900 dark:text-cyan-300">
-                                <svg className="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 20">
-                                    <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.147 15.085a7.159 7.159 0 0 1-6.189 3.307A6.713 6.713 0 0 1 3.1 15.444c-2.679-4.513.287-8.737.888-9.548A4.373 4.373 0 0 0 5 1.608c1.287.953 6.445 3.218 5.537 10.5 1.5-1.122 2.706-3.01 2.853-6.14 1.433 1.049 3.993 5.395 1.757 9.117Z" />
-                                </svg>
-                                <span className="sr-only">錯誤訊息</span>
-                            </div>
-                            <div className="ml-3 text-sm font-normal">
-                                <div className="mb-1 text-base font-semibold text-gray-900 dark:text-white">
-                                    <p>錯誤訊息 (狀態碼: {JSON.stringify(error.status)})</p>
-                                </div>
-                                <div className="mb-1 text-sm font-normal">
-                                    <p>{JSON.stringify(error.info)}</p>
-                                    <p>{JSON.stringify(error.error_data)}</p>
-                                </div>
-                            </div>
-                            <Toast.Toggle />
-                        </div>
-                    </div>
-                </Toast>
-            )}
-            {!data && (
-                <Toast>
-                    <div className="fixed top-24 right-4 z-[9999] max-w-xs p-4 text-gray-500 bg-white rounded-lg shadow dark:text-gray-400 dark:bg-gray-800">
-                        <div className="flex items-start">
-                            <div className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-cyan-100 text-cyan-500 dark:bg-cyan-900 dark:text-cyan-300">
-                                <svg className="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 20">
-                                    <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.147 15.085a7.159 7.159 0 0 1-6.189 3.307A6.713 6.713 0 0 1 3.1 15.444c-2.679-4.513.287-8.737.888-9.548A4.373 4.373 0 0 0 5 1.608c1.287.953 6.445 3.218 5.537 10.5 1.5-1.122 2.706-3.01 2.853-6.14 1.433 1.049 3.993 5.395 1.757 9.117Z" />
-                                </svg>
-                                <span className="sr-only">系統訊息</span>
-                            </div>
-                            <div className="ml-3 text-sm font-bold">
-                                <div className="mb-1 text-md font-semibold text-gray-900 dark:text-white">
-                                    <p>系統訊息</p>
-                                </div>
-                                <div className="mb-1 text-base font-normal">
-                                    <p>{`正在載入 ${(selectedTime == 0) ? '即時' : Math.abs(selectedTime / 24) + ((selectedTime < 0) ? '天前' : '天後')} 之資料`}</p>
-                                </div>
-                            </div>
-                            <Toast.Toggle />
-                        </div>
-                    </div>
-                </Toast>
-            )}
+            {
+                showDrawer && <Info_Component
+                    coordinate={coordinate}
+                    color={color}
+                    describe={describe}
+                    id={id}
+                    name={name}
+                    travel_speed={travel_speed}
+                    travel_time={travel_time}
+                    update_interval={update_interval}
+                    update_time={update_time}
+                />
+            }
+            {
+                warn &&
+                <Toast_Component
+                    icon_text={"警告訊息"}
+                    title={"警告訊息"}
+                    contents={warn}
+                />
+            }
+            {
+                error &&
+                <Toast_Component
+                    icon_text={"錯誤訊息"}
+                    title={"錯誤訊息 (狀態碼: " + error.status}
+                    contents={JSON.stringify(error.info.error, null, 1)}
+                />
+            }
+            {
+                (!data && !error) &&
+                <Toast_Component
+                    icon_text={"系統訊息"}
+                    title={"系統訊息"}
+                    contents={`正在載入 ${(selectedTime == 0) ? '即時' : Math.abs(selectedTime / 24) + ((selectedTime < 0) ? '天前' : '天後')} 之資料`}
+                />
+            }
         </div>
     )
 }

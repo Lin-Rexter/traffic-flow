@@ -26,7 +26,7 @@ const Timeline = () => {
     const [isDragging, setIsDragging] = useState(false);
     const timelineRef = useRef(null);
 
-    /*
+    /* Example:
     const timeMarkers = [
         { label: "7天前", value: -7 * 24 },
         { label: "6天前", value: -6 * 24 },
@@ -43,11 +43,12 @@ const Timeline = () => {
     ];
     */
 
+    // 時間刻度
     var timeMarkers = [
         { label: "即時", value: 0 }
     ]
 
-    // 初始時間軸控制鈕定位到即時
+    // 初始時間軸控制鈕定位到即時刻度
     useEffect(() => {
         // 置中
         if (timeMarkers.length > time_len) {
@@ -58,10 +59,13 @@ const Timeline = () => {
                 })
                 return Number(RealTimeIndex)
             })
+        }else{
+            time_len = 0
         }
     }, [time_len])
 
     // 新增時間軸刻度
+    var dayNames = ["日", "一", "二", "三", "四", "五", "六"]
     const [Forecast_Date_list, His_Date_list] = GetTDXDate().data;
     if (Forecast_Date_list?.length > 0 && His_Date_list?.length > 0) {
         const his_timeList = His_Date_list.sort().reverse()
@@ -72,20 +76,24 @@ const Timeline = () => {
             let diffDays = DiffDays(new Date(item), new Date())
             if ((Math.abs(diffDays) == 0) || (Math.abs(diffDays) > 365)) return;
 
+            const item_date = new Date(item).toLocaleString('zh-Hant-TW') + ' ' + `(禮拜${dayNames[new Date(item).getDay()]})`
+
             // 小於0表示預測資料天數
             if (diffDays < 0) {
                 diffDays = Math.abs(diffDays)
-                timeMarkers.push({ label: `${diffDays}天後`, value: (diffDays * 24), date: new Date(item).toLocaleString('zh-Hant-TW') })
+                timeMarkers.push({ label: `${diffDays}天後`, value: (diffDays * 24), date: item_date })
             } else if (diffDays > 0) {
-                timeMarkers.unshift({ label: `${Math.abs(diffDays)}天前`, value: -(diffDays * 24), date: new Date(item).toLocaleString('zh-Hant-TW') })
+                timeMarkers.unshift({ label: `${diffDays}天前`, value: -(diffDays * 24), date: item_date })
             }
         })
     }
 
+    // 取得時間軸所選擇的時間
     useEffect(() => {
         setSelectedTime(timeMarkers[selectedIndex].value);
     }, [selectedIndex, setSelectedTime]);
 
+    // 取得時間軸所選擇的Index
     const updateTimelinePosition = (clientX) => {
         const timeline = timelineRef.current;
         const rect = timeline.getBoundingClientRect();
@@ -95,21 +103,25 @@ const Timeline = () => {
         setSelectedIndex(newIndex);
     };
 
+    // 滑鼠按下事件
     const handleMouseDown = (e) => {
         setIsDragging(true);
         updateTimelinePosition(e.clientX);
     };
 
+    // 滑鼠移動事件
     const handleMouseMove = (e) => {
         if (isDragging) {
             updateTimelinePosition(e.clientX);
         }
     };
 
+    // 滑鼠放開事件
     const handleMouseUp = () => {
         setIsDragging(false);
     };
 
+    // 當滑鼠按下時，綁定相關滑鼠動作事件
     useEffect(() => {
         document.addEventListener('mousemove', handleMouseMove);
         document.addEventListener('mouseup', handleMouseUp);
@@ -120,7 +132,7 @@ const Timeline = () => {
     }, [isDragging]);
 
     return (((Forecast_Date_list?.length > 0) && (His_Date_list?.length > 0)) && (
-        <div className="w-2/3 max-w-3xl">
+        <div className="w-2/3 max-w-2xl">
             <div className="relative h-4 bg-blue-200 rounded-full cursor-pointer select-none"
                 ref={timelineRef}
                 onMouseDown={handleMouseDown}>
@@ -131,16 +143,27 @@ const Timeline = () => {
                 {/* 時間標記 */}
                 {timeMarkers.map((marker, index) => (
                     <div key={index}
-                        className="absolute top-7 transform -translate-x-1/2 text-xs"
-                        style={{ left: `${(index / (timeMarkers.length - 1)) * 100}%`, 'white-space': 'nowrap' }}>
+                        className="absolute top-7 transform -translate-x-1/2 text-xs text-white"
+                        style={{ left: `${(index / (timeMarkers.length - 1)) * 100}%`, whiteSpace: 'nowrap' }}>
                         {marker.label}
                     </div>
                 ))}
 
                 {/* 控制鈕 */}
-                <Popover content={Content(timeMarkers[selectedIndex].label, timeMarkers[selectedIndex].date || new Date().toLocaleString('zh-Hant-TW'))} trigger="hover" placement="top">
-                    <div className="absolute top-[-5] w-7 h-7 bg-white rounded-full"
-                        style={{ left: `calc(${(selectedIndex / (timeMarkers.length - 1)) * 100}% - 2%)` }} />
+                <Popover
+                    content={
+                        Content(
+                            timeMarkers[selectedIndex].label,
+                            (timeMarkers[selectedIndex].date || new Date().toLocaleString('zh-Hant-TW') + ' ' + `(禮拜${dayNames[new Date().getDay()]})`)
+                        )
+                    }
+                    trigger="hover"
+                    placement="top"
+                >
+                    <div
+                        className="absolute top-[-5] w-7 h-7 bg-white rounded-full"
+                        style={{ left: `calc(${(selectedIndex / (timeMarkers.length - 1)) * 100}% - 2%)` }}
+                    />
                 </Popover>
             </div>
         </div>

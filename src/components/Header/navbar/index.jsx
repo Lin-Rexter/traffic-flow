@@ -9,6 +9,7 @@ import Image from 'next/image';
 //import { cookies } from 'next/headers'
 import ThemeSwitch from './themes/themeswitch'
 import Collection_Dropdown from './collection';
+import { Toast_Component } from "@/components/utils/toast";
 
 
 function IsUrl(url_name) {
@@ -19,13 +20,22 @@ function IsUrl(url_name) {
     return true ? (pathname == url_name) : false
 }
 
+
+var isLoading = false;
+
 // 互動式地圖的導覽連結
 const MapHeader = () => {
     const router = useRouter()
 
     return (
-        <div className='flex cursor-pointer text-5xl py-2 px-2 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 md:dark:hover:text-blue-500 dark:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700 hover:bg-gray-700'>
-            <IoIosRefreshCircle title="重新整理" onClick={() => router.refresh() /*router.refresh() && router.push('#')*/} />
+        <div className='flex cursor-pointer text-5xl m-0 p-0 text-gray-900 rounded rounded-full border border-4 hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:dark:hover:text-blue-500 dark:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700 hover:bg-gray-700'>
+            <IoIosRefreshCircle title="重新整理" onClick={() => {
+                isLoading = true
+                router.refresh()
+                setTimeout(() => {
+                    isLoading = false
+                }, 1000)
+            } /*router.refresh() && router.push('#')*/} />
         </div>
     )
 }
@@ -140,6 +150,13 @@ const Navbar_Component = () => {
                     </ul>
                 </div>
             </div>
+
+            {isLoading && <Toast_Component
+                icon_text={"系統訊息"}
+                title={"系統訊息"}
+                contents={"地圖更新中..."}
+                showExit={false}
+            />}
         </nav>
     );
 };

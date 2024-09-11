@@ -21,7 +21,7 @@ export async function GET(request) {
             useExistToken: isTrue('test_token')
         })
 
-        return NextResponse.json({ ...TDX_Live_Result }, { status: 200 }) // { status: 200 }可省略
+        return NextResponse.json({ ...TDX_Live_Result }) // { status: 200 }可省略
     } catch (error) {
         console.log(`\n發生例外錯誤: ${'=' * 10}\n${error}\n${'=' * 10}`)
         return NextResponse.json({ error: error }, { status: 500 })

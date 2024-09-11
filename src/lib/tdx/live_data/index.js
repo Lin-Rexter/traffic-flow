@@ -1,5 +1,5 @@
 import GetAccessToken from '@/lib/tdx/auth'
-import Fetch_Data from '@/lib/tdx/fetch_all'
+import Fetch_Data from '@/lib/tdx/fetch_TDX'
 
 
 // 取得 TDX Live Data
@@ -17,7 +17,6 @@ export async function Get_TDX_Live({ useExistToken = true }) {
         const AccessToken = await GetAccessToken(Client_ID, Client_Secret, useExistToken)
 
         // = = = = = = = = 取得資料 = = = = = = = =
-
         // 設置要取得的資料url - 即時資料
         const real_time_urls = {
             freeway_shape_url: 'https://tdx.transportdata.tw/api/basic/v2/Road/Traffic/SectionShape/Freeway', // ?$top=1，各個路段的經緯度
@@ -26,23 +25,14 @@ export async function Get_TDX_Live({ useExistToken = true }) {
         }
 
         // 取得所有選擇的TDX資料
-        const [Fetch_Result, Fetch_Info] = await Fetch_Data(AccessToken, real_time_urls)
+        const [Fetch_Result, Fetch_Info] = await Fetch_Data({
+            AccessToken: AccessToken,
+            urls: real_time_urls
+        })
         const [shape_result, live_result, section_result] = Fetch_Result
-        const [fetch_status_code, fetch_data, fetch_error, fetch_error_format] = Fetch_Info
-
-        // 顯示請求回應資訊
-        const fetch_response = `
-        =========壅塞資料取得狀態=========
-        請求狀態碼: ${fetch_status_code}
-        請求回應原始訊息: ${fetch_status_code.every((code) => code != 200) ? JSON.stringify(fetch_data, null, 2) : "無"}
-        請求回應原始錯誤訊息: ${fetch_error.length != 0 ? fetch_error : '無'}
-        請求回應錯誤訊息: ${fetch_error_format.length != 0 ? fetch_error_format : '無'}
-        ================================
-        `.replaceAll(' ', '')
-        console.log(fetch_response)
 
         // 檢查是否成功請求資料
-        if (fetch_status_code.every((code) => code == 200)) {
+        if (Fetch_Info.fetch_OK) {
             // = = = = = = = = 合併資料 = = = = = = = =
 
             // 1. 儲存各個路段的經緯度
@@ -129,7 +119,11 @@ export async function Get_TDX_Live({ useExistToken = true }) {
             Return_Result.data = Section_GeoJSON
             return Return_Result
         } else {
-            Return_Result.error = { data: fetch_data, error_data: fetch_error_format, status: fetch_status_code }
+            Return_Result.error = { 
+                data: Fetch_Info.fetch_data,
+                error: Fetch_Info.fetch_exception_error || Fetch_Info.fetch_error_format,
+                status: Fetch_Info.fetch_status_code
+            }
             return Return_Result
         }
     } catch (e) {

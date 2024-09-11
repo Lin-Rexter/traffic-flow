@@ -8,6 +8,7 @@ const clearCache = () => mutate(
     { revalidate: false }
 )
 
+// TDX資料取得API中控模組
 export const useGetTraffic = (disabled = false, useExistToken = true, time = 0) => {
     if (disabled) {
         return [null, null, null]
@@ -99,7 +100,7 @@ export const useGetTraffic = (disabled = false, useExistToken = true, time = 0) 
     } else if (time > 0) {
         fetch_url = `/api/tdx/forecast?days=${time / 24}`
     } else {
-        fetch_url = `/api/tdx/new?test_token=${useExistToken}`  
+        fetch_url = `/api/tdx/new?test_token=${useExistToken}`
     }
 
     // 每60秒更新一次資料 
