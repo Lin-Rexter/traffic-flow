@@ -59,7 +59,7 @@ const Timeline = () => {
                 })
                 return Number(RealTimeIndex)
             })
-        }else{
+        } else {
             time_len = 0
         }
     }, [time_len])
@@ -71,10 +71,23 @@ const Timeline = () => {
         const his_timeList = His_Date_list.sort().reverse()
         const forecast_timeList = Forecast_Date_list.sort()
 
+        // 檢查預測資料是否過期(小於現在時間)
+        const forecast_expired = forecast_timeList.every((item_date) => DiffDays(new Date(item_date), new Date()) > 0)
+
+        // 要新增的天數列表
+        var timeList = []
+        if (!forecast_expired) {
+            timeList = [...his_timeList, ...forecast_timeList]
+        } else {
+            timeList = [...his_timeList]
+        }
+
         // 新增壅塞天數
-        Object.values([...his_timeList, ...forecast_timeList]).forEach((item, index) => {
+        Object.values(timeList).forEach((item, index) => {
             let diffDays = DiffDays(new Date(item), new Date())
             if ((Math.abs(diffDays) == 0) || (Math.abs(diffDays) > 365)) return;
+            // 一天只新增中午12點的資料
+            if (new Date(item).getHours() != 12) return;
 
             const item_date = new Date(item).toLocaleString('zh-Hant-TW') + ' ' + `(禮拜${dayNames[new Date(item).getDay()]})`
 

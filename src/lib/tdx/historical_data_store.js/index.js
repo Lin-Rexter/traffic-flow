@@ -2,6 +2,7 @@ import util from 'util'
 import GetAccessToken from '@/lib/tdx/auth'
 import Fetch_Data from '@/lib/tdx/fetch_TDX'
 import { Supabase_CRUD } from '@/lib/supabase/client'
+import { current } from '@reduxjs/toolkit'
 
 
 // 取得 TDX History Data
@@ -20,7 +21,7 @@ export async function Store_TDX_Historical({ date, useExistToken = true }) {
     }
 
     const Date_Search = validation_date.toISOString().split('T')[0]
-    console.log(`\n正在取得'${validation_date}'的TDX壅塞歷史資料...`)
+    console.log(`\n正在取得'${Date_Search}'的TDX壅塞歷史資料...`)
 
     try {
         // = = = = = = = = Authorizations = = = = = = = =
@@ -41,15 +42,28 @@ export async function Store_TDX_Historical({ date, useExistToken = true }) {
             urls: real_time_urls,
             isHistory: true
         })
-        const [live_result] = Fetch_Result
-
+        var [live_result] = Fetch_Result
+        console.log(live_result.length)
 
         // 檢查是否成功請求資料
         if (Fetch_Info.fetch_OK) {
             // 處理live_result資料
             const live_result_list = []
             live_result.forEach((item) => {
-                if ((new Date(item.SrcUpdateTime).getHours() % 4) === 0) {
+                // 儲存每小時的所有id資料
+                //const previous_item = live_result_list[live_result_list.length - 1]
+                /*
+                (live_result_list.length === 0) ||
+                (live_result_list.length > 0 && (previous_item.section_id !== item.SectionID) && (live_result_list.includes(new Date(item.SrcUpdateTime).toLocaleString()))) ||
+                (new Date(previous_item.update_time).getHours() !== new Date(item.SrcUpdateTime).getHours()) // 保留每一小時，忽略同小時不同分鐘資料
+                */
+                if (
+                    live_result_list.length === 0 ||
+                    !live_result_list.some((row) =>
+                        row.section_id === item.SectionID &&
+                        new Date(row.update_time).getHours() === new Date(item.SrcUpdateTime).getHours()
+                    )
+                ) {
                     let Column = {
                         section_id: item.SectionID,
                         level: item.CongestionLevel,
@@ -61,6 +75,7 @@ export async function Store_TDX_Historical({ date, useExistToken = true }) {
                     live_result_list.push(Column)
                 }
             })
+            console.log(live_result_list.length)
 
             // 儲存TDX資料到 Supabase
             const Supabase = new Supabase_CRUD()
@@ -68,24 +83,20 @@ export async function Store_TDX_Historical({ date, useExistToken = true }) {
             // 因資料量大，分批新增至資料庫
             const chunk = (arr, size) => arr.reduce(
                 (carry, _, index, orig) => !(index % size)
-                ? carry.concat([orig.slice(index,index+size)])
-                : carry, []
+                    ? carry.concat([orig.slice(index, index + size)])
+                    : carry, []
             );
-            const chunkSize = chunk(live_result_list, 50000)
-            const chunkedArray = []
-            while (live_result_list.length > 0) {
-                chunkedArray.push(live_result_list.splice(0, chunkSize))
-            }
+            const chunkSize = chunk(live_result_list, 10000)
 
-            const Live_Store_Result = await Promise.all(chunkedArray.map(async (chunk) => {
+            const Live_Store_Result = await Promise.all(chunkSize.map(async (chunk) => {
                 return await Supabase.upsert({
                     table: 'Live_Data',
-                    data: chunk,
-                    //options: { count: true }
+                    values: chunk,
+                    options: { count: true }
                 })
             }))
 
-            Return_Result.data = {  
+            Return_Result.data = {
                 Live_Result: Live_Store_Result
             }
 
@@ -101,15 +112,19 @@ export async function Store_TDX_Historical({ date, useExistToken = true }) {
                 return Return_Result
             }
 
-            Return_Result.data = live_result_list.slice(0, 100)
+            Return_Result.data = live_result_list.slice(0, 50)
 
             return Return_Result
         } else {
-            Return_Result.error = { data: fetch_data, error_data: fetch_error_format, status: fetch_status_code }
+            Return_Result.error = {
+                data: Fetch_Info.fetch_data,
+                error: Fetch_Info.fetch_exception_error || Fetch_Info.fetch_error_format,
+                status: Fetch_Info.fetch_status_code
+            }
             return Return_Result
         }
     } catch (e) {
-        console.error('[Get_TDX_Live] ERROR: ', e)
+        console.error('[Get_TDX_Historical] ERROR: ', e)
         Return_Result.error = e.message || e.toString()
         return Return_Result
     }

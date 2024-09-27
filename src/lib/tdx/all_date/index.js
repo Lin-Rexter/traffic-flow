@@ -47,9 +47,14 @@ export const GetTDXDate = () => {
             if ((Live_Forecast_Data.count > 0) && (His_Result.count > 0)) {
                 var Forecast_temp_date = []
                 var His_temp_date = []
-
                 Live_Forecast_Data.data.forEach((item) => {
-                    Forecast_temp_date.push(new Date(item.update_time).addHours(0).toISOString())
+                    if (Forecast_temp_date.length === 0 ||
+                        !Forecast_temp_date.some((row) =>
+                            new Date(row).getHours() == new Date(item.update_time).getHours() && 
+                            new Date(row).getMinutes() != new Date(item.update_time).getMinutes()
+                        )) {
+                        Forecast_temp_date.push(new Date(item.update_time).addHours(0).toISOString())
+                    }
                 })
                 His_Result.data.forEach((item) => {
                     His_temp_date.push(new Date(item.update_time).addHours(0).toISOString())

@@ -30,7 +30,10 @@ export async function Get_TDX_Forecast({ date }) {
         var Live_Result = await Supabase.read({
             table: 'Live_Forecast_Data',
             options: { count: true },
-            filters: { eq: ["update_time", new Date(`${Date_Search}T12:00:00`).toISOString()] },
+            filters: {
+                gte: ["update_time", new Date(`${Date_Search}T12:00:00`).toISOString()],
+                lte: ["update_time", new Date(`${Date_Search}T13:00:00`).toISOString()]
+            },
             modifiers: { csv: false }
         })
 

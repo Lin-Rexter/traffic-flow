@@ -29,7 +29,10 @@ export async function Get_TDX_Historical({ date }) {
         var Live_Result = await Supabase.read({
             table: 'Live_Data',
             options: { count: true },
-            filters: { eq: ["update_time", new Date(`${Date_Search}T12:00:00`).toISOString()] },
+            filters: {
+                gte: ["update_time", new Date(`${Date_Search}T12:00:00`).toISOString()],
+                lte: ["update_time", new Date(`${Date_Search}T13:00:00`).toISOString()]
+            },
             modifiers: { csv: false }
         })
 
@@ -48,7 +51,7 @@ export async function Get_TDX_Historical({ date }) {
         })
 
         // 檢查是否取得壅塞資料
-        if (Live_Result.count == 0) {
+        if (Live_Result.data.length == 0) {
             Return_Result.error = '[Get_TDX_Historical] ERROR: 取得0筆資料，請確認日期是否有誤!'
             return Return_Result
         }
