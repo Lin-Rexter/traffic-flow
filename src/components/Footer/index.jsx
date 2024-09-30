@@ -8,7 +8,7 @@ const Footer = () => {
                 <div className='max-w-screen-2xl flex flex-wrap items-center justify-between space-y-1 md:space-y-0 mx-auto px-2 py-5'>
                     <span className="text-sm text-gray-500 sm:text-center dark:text-gray-400">
                         © 2024
-                        <Link href="#" className="ml-1 hover:underline">
+                        <Link href="/" className="ml-1 hover:underline">
                             第九組
                         </Link>
                         . All Rights Reserved.
@@ -18,7 +18,7 @@ const Footer = () => {
                             <Link href="#" className="hover:underline me-4 md:me-6">關於我們</Link>
                         </li>
                         <li>
-                            <Link href="#" className="hover:underline">聯絡</Link>
+                            <Link href="mailto:aaaa5963596@gmail.com" title='aaaa5963596@gmail.com' className="hover:underline">聯絡</Link>
                         </li>
                     </ul>
                 </div>

@@ -2,7 +2,6 @@ import util from 'util'
 import GetAccessToken from '@/lib/tdx/auth'
 import Fetch_Data from '@/lib/tdx/fetch_TDX'
 import { Supabase_CRUD } from '@/lib/supabase/client'
-import { current } from '@reduxjs/toolkit'
 
 
 // 取得 TDX History Data
@@ -27,7 +26,7 @@ export async function Store_TDX_Historical({ date, useExistToken = true }) {
         // = = = = = = = = Authorizations = = = = = = = =
         const Client_ID = process.env.NEXT_PUBLIC_Client_ID;
         const Client_Secret = process.env.NEXT_PUBLIC_Client_Secret
-        const AccessToken = await GetAccessToken(Client_ID, Client_Secret, useExistToken)
+        const AccessToken_info = await GetAccessToken(Client_ID, Client_Secret, useExistToken)
 
         // = = = = = = = = 取得資料 = = = = = = = =
 
@@ -38,7 +37,8 @@ export async function Store_TDX_Historical({ date, useExistToken = true }) {
 
         // 取得所有選擇的TDX資料
         const [Fetch_Result, Fetch_Info] = await Fetch_Data({
-            AccessToken: AccessToken,
+            AccessToken: AccessToken_info?.AccessToken,
+            Token_Expires: AccessToken_info?.Expires_ms,
             urls: real_time_urls,
             isHistory: true
         })
@@ -46,7 +46,7 @@ export async function Store_TDX_Historical({ date, useExistToken = true }) {
         console.log(live_result.length)
 
         // 檢查是否成功請求資料
-        if (Fetch_Info.fetch_OK) {
+        if (!AccessToken_info.Error && Fetch_Info.fetch_OK) {
             // 處理live_result資料
             const live_result_list = []
             live_result.forEach((item) => {

@@ -23,7 +23,7 @@ export async function GET(request) {
 
         return NextResponse.json({ ...TDX_Live_Result }) // { status: 200 }可省略
     } catch (error) {
-        console.log(`\n發生例外錯誤: ${'=' * 10}\n${error}\n${'=' * 10}`)
+        console.error(`\n發生例外錯誤: ${'=' * 10}\n${error}\n${'=' * 10}`)
         return NextResponse.json({ error: error }, { status: 500 })
     }
 }

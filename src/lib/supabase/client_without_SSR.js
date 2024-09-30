@@ -25,7 +25,7 @@ export class Supabase_CRUD {
     async response({ data = null, error = null }) {
         error && console.error(error);
 
-        if (has(data, 'data') && has(data, 'error')) {
+        if (has(data, 'data') || has(data, 'error') || has(data, 'count')) {
             return { ...data }
         }
 

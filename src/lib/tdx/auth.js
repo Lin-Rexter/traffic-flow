@@ -1,7 +1,52 @@
+import { cookies } from 'next/headers'
+import { setEnvValue } from '@/lib/utils'
+
+/*
+const Token_JWT = async (access_token) => {
+    const secret = new TextEncoder().encode(access_token)
+    const alg = 'HS256'
+
+    const jwt = await new jose.SignJWT({ 'urn:example:claim': true })
+        .setProtectedHeader({ alg })
+        .setIssuedAt()
+        .setIssuer('urn:example:issuer')
+        .setAudience('urn:example:audience')
+        .setExpirationTime('24h')
+        .sign(secret)
+
+    return jwt
+}
+*/
+
 // 請求TDX的Token
-export default async function GetToken(id, secret, test=false) {
+export default async function GetToken(id, secret, test = false) {
+    var Response = {
+        AccessToken: null,
+        Expires_ms: 0, // 過期日毫秒
+        Error: null
+    }
+
+    const cookieStore = cookies()
+    var TDX_Access_token = process.env.NEXT_PUBLIC_TDX_ACCESS_TOKEN
+
     if (test) {
-        return process.env.NEXT_PUBLIC_TDX_ACCESS_TOKEN || null
+        if (!TDX_Access_token) {
+            throw new Error("\n ⚠️ 已設置使用現有Access token，但.env.local檔案裡未設定環境變數(NEXT_PUBLIC_TDX_ACCESS_TOKEN)。\n")
+        }
+        Response.AccessToken = TDX_Access_token
+        Response.Expires_ms = -1
+        return Response
+    }
+
+    // 檢查Token是否過期
+    if (cookieStore.has('tdx_token_expires_in')) {
+        const milliseconds = cookieStore.get('tdx_token_expires_in').value
+
+        Response.AccessToken = TDX_Access_token
+        Response.Expires_ms = Number(milliseconds)
+        return Response
+    } {
+        console.log("\nAccess Token已過期，更新中...\n")
     }
 
     // 設置預設金鑰的ID、Secret
@@ -33,7 +78,7 @@ export default async function GetToken(id, secret, test=false) {
     */
 
     //  = = = = = = = = 請求方式 2 = = = = = = = =
-    try{
+    try {
         var result = await fetch(auth_url, {
             method: "POST",
             headers: {
@@ -42,21 +87,47 @@ export default async function GetToken(id, secret, test=false) {
             },
             //cache: 'no-cache', //'force-dynamic', //停止快取
             body: requestBody
-        }).then((res) => {
+        }).then(async (res) => {
             const data = res.json();
             return data
-        }).then((data) => {
-            console.log(`\n已取得Access Token (${data.access_token})，有效期限(秒): ${data.expires_in}\n`);
+        }).then(async (data) => {
+            if (data.error) {
+                let err_msg = ""
+                if (data.error === 'unauthorized_client') {
+                    err_msg = 'TDX client無效，可能為超量使用停權或其他因素，請重新至 https://tdx.transportdata.tw/user/dataservice/key 建立API金鑰(Client Id和Client Secret)';
+                }
+                throw new Error(`\n[GetToken]: ${err_msg}`);
+            }
+
             const token = data.access_token;
-            return token
+            const expires = data.expires_in;
+            console.log(`\n已取得Access Token (${token})，有效期限(秒): ${expires}\n`);
+
+            const t = new Date();
+            t.setSeconds(t.getSeconds() + expires);
+            //t.setHours(t.getUTCHours() + 8);
+            const expiration_date = t.getTime();
+
+            // 儲存token有效期限至cookie
+            cookieStore.set('tdx_token_expires_in', String(expiration_date), { maxAge: expires }) // 儲存有效期限至cookie
+
+            // 儲存Access Token
+            setEnvValue('NEXT_PUBLIC_TDX_ACCESS_TOKEN', token)
+
+            Response.AccessToken = token
+            Response.Expires_ms = expires
+
+            return Response
         }).catch((e) => {
-            console.error('[GetToken]Error:', e);
-            return e
+            console.error('[GetToken]錯誤:', e.message);
+            Response.Error = e.message
+            return Response
         })
 
         return result
     } catch (e) {
-        console.error('[GetToken]Error:', e);
-        return e
+        console.error('[GetToken]例外錯誤:', e.message);
+        Response.Error = e.message
+        return Response
     }
 }

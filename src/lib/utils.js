@@ -1,5 +1,7 @@
-//"use client";
 //import useSWR from 'swr'
+import * as fs from 'fs';
+import os from 'os';
+import path from 'path';
 
 //const geojson_url = "/api/tdx";
 /*
@@ -28,7 +30,7 @@ export const get_geojson = async() => {
         .then((data) => {
             //setDetails(data.section_geojson);
             return data.section_geojson;
-        })
+        })  
         .catch((err) => {
             console.log("錯誤:", err);
         });
@@ -47,4 +49,17 @@ export const DiffDays = (date1, date2) => {
     const diffTime = date2 - date1;
     const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
     return diffDays;
+}
+
+// 編輯Env檔環境變數
+export const setEnvValue = (key, value) => {
+    const ENV_VARS = fs.readFileSync(path.join(process.cwd(), '/.env.local'), "utf8").split(os.EOL);
+
+    const target = ENV_VARS.indexOf(ENV_VARS.find((line) => {
+        return line.match(new RegExp(key));
+    }));
+
+    ENV_VARS.splice(target, 1, `${key} = '${value}'`);
+
+    fs.writeFileSync(path.join(process.cwd(), '/.env.local'), ENV_VARS.join(os.EOL));
 }

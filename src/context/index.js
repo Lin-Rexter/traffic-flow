@@ -5,7 +5,7 @@ const DrawerContext = createContext();
 
 // 跨組件共享變數
 export const TimeProvider = ({ children }) => {
-    const [selectedTime, setSelectedTime] = useState(0);
+    const [selectedTime, setSelectedTime] = useState([null, null]);
 
     return (
         <TimeContext.Provider value={{ selectedTime, setSelectedTime }}>

@@ -1,10 +1,26 @@
 "use client";
 import React, { useContext, useState, useRef, useEffect, useCallback } from "react";
-import { Button, Popover } from "flowbite-react";
+import { Button, Popover, Dropdown } from "flowbite-react";
+import {
+    TbSquareRoundedNumber1Filled,
+    TbSquareRoundedNumber2Filled,
+    TbSquareRoundedNumber3Filled,
+    TbSquareRoundedNumber4Filled,
+    TbSquareRoundedNumber5Filled,
+    TbSquareRoundedNumber6Filled,
+    TbSquareRoundedNumber7Filled,
+} from "react-icons/tb";
+import { SiFuturelearn } from "react-icons/si"
+import { FaHistory, FaFireAlt } from "react-icons/fa";;
 import { useTime } from "@/context";
 import { GetTDXDate } from '@/lib/tdx/all_date'
 import { DiffDays } from '@/lib/utils'
 
+
+Date.prototype.addHours = function (h) {
+    this.setTime(this.getTime() + (h * 60 * 60 * 1000));
+    return this;
+}
 
 const Content = (past_day, date) => {
     return (
@@ -23,6 +39,7 @@ var time_len = 0
 const Timeline = () => {
     const { selectedTime, setSelectedTime } = useTime();
     const [selectedIndex, setSelectedIndex] = useState(0);
+    const [selectedDay, setSelectedDay] = useState(0);
     const [isDragging, setIsDragging] = useState(false);
     const timelineRef = useRef(null);
 
@@ -60,50 +77,50 @@ const Timeline = () => {
                 return Number(RealTimeIndex)
             })
         } else {
-            time_len = 0
+            time_len = timeMarkers.length
         }
-    }, [time_len])
+    }, [time_len, timeMarkers])
 
     // 新增時間軸刻度
     var dayNames = ["日", "一", "二", "三", "四", "五", "六"]
-    const [Forecast_Date_list, His_Date_list] = GetTDXDate().data;
-    if (Forecast_Date_list?.length > 0 && His_Date_list?.length > 0) {
-        const his_timeList = His_Date_list.sort().reverse()
-        const forecast_timeList = Forecast_Date_list.sort()
+
+    var [Forecast_Date_list, Hx_Date_list] = GetTDXDate()?.data;
+    if ((Forecast_Date_list?.length > 0) && (Hx_Date_list?.length > 0)) {
+        // 排序時間
+        let Hx_timeList = Hx_Date_list.sort((a, b) => a.getTime() - b.getTime()).reverse()
+        let forecast_timeList = Forecast_Date_list.sort((a, b) => a.getTime() - b.getTime())
 
         // 檢查預測資料是否過期(小於現在時間)
-        const forecast_expired = forecast_timeList.every((item_date) => DiffDays(new Date(item_date), new Date()) > 0)
+        forecast_timeList = forecast_timeList.filter((item_date) => DiffDays(item_date, new Date()) < 0)
+
+        //console.log("長度:", Forecast_Date_list?.length)
+        //console.log("長度: ", Hx_Date_list?.length)
 
         // 要新增的天數列表
-        var timeList = []
-        if (!forecast_expired) {
-            timeList = [...his_timeList, ...forecast_timeList]
-        } else {
-            timeList = [...his_timeList]
-        }
+        var timeList = [...Hx_timeList, ...forecast_timeList]
 
         // 新增壅塞天數
         Object.values(timeList).forEach((item, index) => {
-            let diffDays = DiffDays(new Date(item), new Date())
+            let diffDays = DiffDays(item, new Date())
             if ((Math.abs(diffDays) == 0) || (Math.abs(diffDays) > 365)) return;
             // 一天只新增中午12點的資料
-            if (new Date(item).getHours() != 12) return;
+            //if (item.getHours() != 12) return;
 
             const item_date = new Date(item).toLocaleString('zh-Hant-TW') + ' ' + `(禮拜${dayNames[new Date(item).getDay()]})`
-
+            const item_dates = new Date(item).addHours(8).toISOString()
             // 小於0表示預測資料天數
             if (diffDays < 0) {
                 diffDays = Math.abs(diffDays)
-                timeMarkers.push({ label: `${diffDays}天後`, value: (diffDays * 24), date: item_date })
+                timeMarkers.push({ label: `${diffDays}天後`, value: (diffDays * 24), date: item_date, dates: item_dates })
             } else if (diffDays > 0) {
-                timeMarkers.unshift({ label: `${diffDays}天前`, value: -(diffDays * 24), date: item_date })
+                timeMarkers.unshift({ label: `${diffDays}天前`, value: -(diffDays * 24), date: item_date, dates: item_dates })
             }
         })
     }
 
     // 取得時間軸所選擇的時間
     useEffect(() => {
-        setSelectedTime(timeMarkers[selectedIndex].value);
+        setSelectedTime([timeMarkers[selectedIndex].value, timeMarkers[selectedIndex].dates]);
     }, [selectedIndex, setSelectedTime]);
 
     // 取得時間軸所選擇的Index
@@ -144,8 +161,63 @@ const Timeline = () => {
         };
     }, [isDragging]);
 
-    return (((Forecast_Date_list?.length > 0) && (His_Date_list?.length > 0)) && (
+    // 取得選擇的禮拜幾
+    const getButtonDay = (e) => {
+        // 取得button的data-value屬性值
+        console.log(e)
+        //setSelectedDay(e.target)
+    };
+
+    var day_icon = [
+        <TbSquareRoundedNumber7Filled className="h-5 w-5" color="dark" />,
+        <TbSquareRoundedNumber1Filled className="h-5 w-5" color="dark" />,
+        <TbSquareRoundedNumber2Filled className="h-5 w-5" color="dark" />,
+        <TbSquareRoundedNumber3Filled className="h-5 w-5" color="dark" />,
+        <TbSquareRoundedNumber4Filled className="h-5 w-5" color="dark" />,
+        <TbSquareRoundedNumber5Filled className="h-5 w-5" color="dark" />,
+        <TbSquareRoundedNumber6Filled className="h-5 w-5" color="dark" />,
+    ]
+
+    return (((Forecast_Date_list?.length > 0) && (Hx_Date_list?.length > 0)) && (
         <div className="w-2/3 max-w-2xl">
+            <div className="relative rounded-full mb-2">
+                <form className="flex">
+                    <Button.Group className="flex justify-start items-center">
+                        <Button type="button" color="cyan" className="flex font-bold items-center border-[2px] border-gray-800 mr-1">
+                            <div className="flex flex-col justify-center items-center p-0 m-0" >
+                                <FaHistory className="h-5 w-5 mb-1" color="dark" />
+                                <Dropdown label="歷史" placement="top" className="bottom-xs p-0 m-0 border-0 focus:outline-none">
+                                    {
+                                        dayNames.map((day, index) => (
+                                            <Dropdown.Item>
+                                                <Button type="button" color="light" key={index} className="flex font-bold items-center border-[2px] border-gray-800 m-0 p-0" onClick={getButtonDay}>
+                                                    <div className="flex flex-col justify-center items-center p-0 m-0" >
+                                                        {day_icon[index]}
+                                                        <span className="hidden sm:block"> 禮拜{day} </span>
+                                                    </div>
+                                                </Button>
+                                            </Dropdown.Item>
+                                        ))
+                                    }
+                                </Dropdown>
+                            </div>
+                        </Button>
+                        <Button type="button" color="cyan" className="flex font-bold items-center border-[2px] border-gray-800 mr-1 h-full" onClick={getButtonDay}>
+                            <div className="flex flex-col justify-center items-center p-0 m-0" >
+                                <FaFireAlt className="h-5 w-5 mb-3" color="dark" />
+                                <span className="hidden sm:block"> 即時 </span>
+                            </div>
+                        </Button>
+                        <Button type="button" color="cyan" className="flex font-bold items-center border-[2px] border-gray-800 mr-1 h-full" onClick={getButtonDay}>
+                            <div className="flex flex-col justify-center items-center p-0 m-0" >
+                                <SiFuturelearn className="h-5 w-5 mb-3" color="dark" />
+                                <span className="hidden sm:block"> 未來 </span>
+                            </div>
+                        </Button>
+                    </Button.Group>
+
+                </form>
+            </div>
             <div className="relative h-4 bg-blue-200 rounded-full cursor-pointer select-none"
                 ref={timelineRef}
                 onMouseDown={handleMouseDown}>
@@ -158,7 +230,7 @@ const Timeline = () => {
                     <div key={index}
                         className="absolute top-7 transform -translate-x-1/2 text-xs text-white"
                         style={{ left: `${(index / (timeMarkers.length - 1)) * 100}%`, whiteSpace: 'nowrap' }}>
-                        {marker.label}
+                        {((marker.value % 24 == 0) && (index % 5 == 0)) && marker.label}
                     </div>
                 ))}
 
@@ -180,8 +252,7 @@ const Timeline = () => {
                 </Popover>
             </div>
         </div>
-    )
-    )
+    ))
 };
 
 export default Timeline;

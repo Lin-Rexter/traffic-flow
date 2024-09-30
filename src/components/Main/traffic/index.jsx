@@ -86,7 +86,7 @@ const HomePage = () => {
                             </div>
                         </div>
                     )}>
-                        {<Dynamic_LocationAggregatorMap off={false} useExistToken={true} /> || <Skeleton />}
+                        {<Dynamic_LocationAggregatorMap off={false} useExistToken={false} /> || <Skeleton />}
                     </Suspense>
 
                     <div className="fixed bottom-28 left-8 w-full">

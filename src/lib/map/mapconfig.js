@@ -30,14 +30,22 @@ export const material = {
     specularColor: [51, 51, 51],
 };
 
+// SF: 初始座標, NYC: 目標座標
 export const INITIAL_VIEW_STATE = {
-    longitude: 121,
-    latitude: 23.5,
-    zoom: 7.5,
-    minZoom: 5,
-    maxZoom: 15,
+    SF: {
+        longitude: 121.5418953,
+        latitude:  25.0383062,
+        zoom: 8,
+    },
+    NYC: {
+        longitude: 121.5418953,
+        latitude: 25.0383062,
+        zoom: 14,
+    },
+    minZoom: 1,
+    maxZoom: 20,
     pitch: 25,
-    bearing: 0
+    bearing: 0,
 };
 
 export const colorRange = [

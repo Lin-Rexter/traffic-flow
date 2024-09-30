@@ -2,7 +2,7 @@ import { Button, Toast } from "flowbite-react";
 
 export const Toast_Component = ({ icon_text, title, contents, showExit = true }) => {
     return (
-        <div className="fixed top-24 right-4 z-[9999]">
+        <div className="fixed top-40 right-4 z-[9999]">
             <Toast>
                 <div className="flex items-center justify-center space-x-3">
                     <div className="flex flex-col justify-center item-center">

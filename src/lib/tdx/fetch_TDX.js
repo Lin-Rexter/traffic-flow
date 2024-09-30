@@ -1,8 +1,13 @@
-
+'use server'
 // 取得TDX資料模組
-export default async function Fetch_Data({ AccessToken, urls = [], isHistory = false, show_info = true }) {
+/**
+- Token_Expires: 過期日毫秒
+    - -1: 使用自訂Access Token
+    - 0: Token過期或無效
+*/
+export default async function Fetch_Data({ AccessToken = '', Token_Expires = 0, urls = [], isHistory = false, show_info = true }) {
     /*
-        // = = = = = 參數介紹 = = = = =
+        // = = = = = 回傳參數介紹 = = = = =
         - Fetch_Data_Result: 請求的資料結果
 
         - Fetch_Data_Info: 儲存資料請求回應資訊
@@ -25,7 +30,7 @@ export default async function Fetch_Data({ AccessToken, urls = [], isHistory = f
     var fetch_OK = false
 
     // 檢查是否成功取得Token
-    if (AccessToken != null) {
+    if ((AccessToken != null) && ((Token_Expires == -1) || (Token_Expires > 0))) {
         // 取得所有選擇的TDX資料
         // TDX請求資料回傳狀態: https://motc-ptx.gitbook.io/tdx-xin-shou-zhi-yin/api-shi-yong-shuo-ming/api-shou-quan-yan-zheng-yu-shi-yong-fang-shi#id-5.-hu-jiao-hou-hui-chuan-zhuang-tai
         // HTTP Status Code: 200, 401, 429, 416, 423
@@ -75,6 +80,7 @@ export default async function Fetch_Data({ AccessToken, urls = [], isHistory = f
                         } else if (fetch_status_code.every((code) => code != 200)) {
                             fetch_data.push({ '請求網址': url, "message": "請求成功" })
                         }
+
                         return data
                     }).catch((err) => {
                         fetch_error.push(err)
@@ -94,20 +100,46 @@ export default async function Fetch_Data({ AccessToken, urls = [], isHistory = f
             );
         } catch (e) {
             fetch_exception_error = e;
-            console.error('[fetch_TDX]意外錯誤: ', e)
+            console.error('[fetch_TDX]意外錯誤: ', e.message)
         }
     } else {
-        fetch_exception_error = '未取得AccessToken'
-        console.error('[fetch_TDX]Error: 未取得AccessToken')
+        fetch_exception_error = 'AccessToken未取得或無效，請查看後台詳細錯誤訊息'
+        console.error(`[fetch_TDX]Error: ${fetch_exception_error}`)
+    }
+
+    // 檢查網路是否中斷
+    if (!fetch_exception_error) {
+        Object.entries(fetch_error).forEach(([key, value], index) => {
+            if (value?.cause?.errno == "-3008") {
+                fetch_exception_error = "網路連線已中斷，請確認你的網路已正確連接!"
+            }
+        })
     }
 
     // 顯示請求資訊
     if (show_info) {
+        if (Token_Expires > 0) {
+            var Token_Expires_format_time = () => {
+                const expires_date = new Date(Token_Expires);
+
+                const left_ms = new Date(Math.abs(Date.now() - expires_date.getTime())).getTime()
+                //const milliseconds = Token_Expires % 1000; // 毫秒
+                const s = Math.floor((left_ms / 1000) % 60);
+                const m = Math.floor((left_ms / (60 * 1000)) % 60);
+                const h = Math.floor((left_ms / (60 * 60 * 1000)) % 24);
+                const d = Math.floor(left_ms / (24 * 60 * 60 * 1000));
+
+                return `${d}天${h}時${m}分${s}秒 (${expires_date.toLocaleString('zh-Hant-TW')})`;
+            }
+        }
+
         // 顯示請求回應資訊
         const fetch_response = `
         =========TDX壅塞資料取得資訊========
-        -------AccessToken-------
+        -------Access Token資訊-------
         Token: ${AccessToken}
+        Token_Expires (Token剩餘時間、到期時間):  ${(Token_Expires > 0) ? Token_Expires_format_time() :
+                (Token_Expires == 0) ? "Access Token無效" : "使用自訂的Access Token，無有效期限資訊"}
         -------------------------
         請求狀態碼: ${(fetch_status_code.length > 0) ? fetch_status_code : '無'}
         請求回應原始訊息: ${fetch_status_code.every((code) => code != 200) ? JSON.stringify(fetch_data, null, 2) : "無"}
@@ -124,12 +156,10 @@ export default async function Fetch_Data({ AccessToken, urls = [], isHistory = f
         fetch_OK = true
     }
 
-    // 檢查網路是否中斷
-    Object.entries(fetch_error).forEach(([key, value], index) => {
-        if (value?.cause?.errno == "-3008") {
-            fetch_exception_error = "網路連線已中斷，請確認你的網路已正確連接!"
-        }
-    })
+    // 當Access Token過期
+    if (Token_Expires == 0) {
+        fetch_OK = false
+    }
 
     Fetch_Data_Info = { fetch_OK, fetch_status_code, fetch_data, fetch_error, fetch_error_format, fetch_exception_error }
 

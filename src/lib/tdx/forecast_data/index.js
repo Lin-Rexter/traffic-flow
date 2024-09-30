@@ -1,6 +1,10 @@
 import util from 'util'
 import { Supabase_CRUD } from '@/lib/supabase/client'
 
+Date.prototype.addHours = function (h) {
+    this.setTime(this.getTime() + (h * 60 * 60 * 1000));
+    return this;
+}
 
 // 取得 TDX Forecast Data
 export async function Get_TDX_Forecast({ date }) {
@@ -17,8 +21,8 @@ export async function Get_TDX_Forecast({ date }) {
         return Return_Result
     }
 
-    const Date_Search = validation_date.toISOString().split('T')[0]
-    console.log(`\n正在取得'${validation_date}'的TDX壅塞預測資料...`)
+    const Date_Search = validation_date
+    console.log(`\n正在取得'${Date_Search.toISOString().split('T')[0]}'的TDX壅塞預測資料...`)
 
     try {
         const Supabase = new Supabase_CRUD()
@@ -30,10 +34,7 @@ export async function Get_TDX_Forecast({ date }) {
         var Live_Result = await Supabase.read({
             table: 'Live_Forecast_Data',
             options: { count: true },
-            filters: {
-                gte: ["update_time", new Date(`${Date_Search}T12:00:00`).toISOString()],
-                lte: ["update_time", new Date(`${Date_Search}T13:00:00`).toISOString()]
-            },
+            filters: { eq: ["update_time", new Date(Date_Search).toISOString()] },
             modifiers: { csv: false }
         })
 
@@ -53,7 +54,8 @@ export async function Get_TDX_Forecast({ date }) {
 
         // 檢查是否取得壅塞資料
         if (Live_Result.count == 0) {
-            Return_Result.error = '[Get_TDX_Forecast] ERROR: 取得0筆資料，請確認日期是否有誤!'
+            Return_Result.error = '目前尚無該時間段的資料，請更改其他時間!'
+            console.error('[Get_TDX_Forecast] ERROR: 取得0筆資料，請確認日期是否有誤!')
             return Return_Result
         }
 
@@ -71,7 +73,8 @@ export async function Get_TDX_Forecast({ date }) {
                     Error_msgs[key] = value.error;
                 }
             })
-            Return_Result.error = ['[Get_TDX_Forecast] ERROR: TDX資料取得失敗', JSON.stringify(Error_msgs, null, 2)]
+            Return_Result.error = '目前尚無該時間段的資料，請更改其他時間!'
+            console.error(['[Get_TDX_Forecast] ERROR: TDX資料取得失敗', JSON.stringify(Error_msgs, null, 2)])
             return Return_Result
         }
 
@@ -106,7 +109,7 @@ export async function Get_TDX_Forecast({ date }) {
             '3': ['正常🟡', '#ffff37'],
             '4': ['壅塞🟠', '#ff8000'],
             '5': ['最壅塞🔴', '#ff0000'], // 最壅塞
-            '-1': ['道路封閉⛔', '#693b3b'] // 道路封閉
+            '-1': ['道路封閉⛔', '#7d3636'] // 道路封閉
         }
 
         var Section_GeoJSON = {
@@ -124,11 +127,14 @@ export async function Get_TDX_Forecast({ date }) {
             //let random_num = Math.round(((Math.random() * 4) + 1)) + '';
             //console.log(random_num)
             let congestion_info = Congestion_color[item.level] // 取得壅塞等級對應的壅塞資訊
-            let update_time = item.update_time // 取得更新時間
+            let update_time = new Date(item.update_time).addHours(8) // 取得更新時間
             let update_interval = item.update_interval // 更新頻率
             let travel_time = item.travel_time // 旅行時間
             let travel_speed = item.travel_speed // 旅行速度
             let coordinates = Shape_Data[SectionID] // 路段座標
+            if (travel_speed == 250) {
+                congestion_info = Congestion_color['-1']
+            }
             Section_GeoJSON.features.push({
                 "type": "Feature",
                 "properties": {

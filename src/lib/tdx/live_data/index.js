@@ -2,6 +2,11 @@ import GetAccessToken from '@/lib/tdx/auth'
 import Fetch_Data from '@/lib/tdx/fetch_TDX'
 
 
+Date.prototype.addHours = function (h) {
+    this.setTime(this.getTime() + (h * 60 * 60 * 1000));
+    return this;
+}
+
 // 取得 TDX Live Data
 export async function Get_TDX_Live({ useExistToken = true }) {
     // 回應格式
@@ -14,7 +19,7 @@ export async function Get_TDX_Live({ useExistToken = true }) {
         // = = = = = = = = Authorizations = = = = = = = =
         const Client_ID = process.env.NEXT_PUBLIC_Client_ID;
         const Client_Secret = process.env.NEXT_PUBLIC_Client_Secret
-        const AccessToken = await GetAccessToken(Client_ID, Client_Secret, useExistToken)
+        const AccessToken_info = await GetAccessToken(Client_ID, Client_Secret, useExistToken)
 
         // = = = = = = = = 取得資料 = = = = = = = =
         // 設置要取得的資料url - 即時資料
@@ -26,13 +31,14 @@ export async function Get_TDX_Live({ useExistToken = true }) {
 
         // 取得所有選擇的TDX資料
         const [Fetch_Result, Fetch_Info] = await Fetch_Data({
-            AccessToken: AccessToken,
+            AccessToken: AccessToken_info?.AccessToken,
+            Token_Expires: AccessToken_info?.Expires_ms,
             urls: real_time_urls
         })
         const [shape_result, live_result, section_result] = Fetch_Result
 
         // 檢查是否成功請求資料
-        if (Fetch_Info.fetch_OK) {
+        if (!AccessToken_info.Error && Fetch_Info.fetch_OK) {
             // = = = = = = = = 合併資料 = = = = = = = =
 
             // 1. 儲存各個路段的經緯度
@@ -83,7 +89,7 @@ export async function Get_TDX_Live({ useExistToken = true }) {
                 '3': ['正常🟡', '#ffff37'],
                 '4': ['壅塞🟠', '#ff8000'],
                 '5': ['最壅塞🔴', '#ff0000'], // 最壅塞
-                '-1': ['道路封閉⛔', '#693b3b'] // 道路封閉
+                '-1': ['道路封閉⛔', '#7d3636'] // 道路封閉
             }
             var Section_GeoJSON = {
                 "type": "FeatureCollection",
@@ -95,10 +101,13 @@ export async function Get_TDX_Live({ useExistToken = true }) {
                 //let random_num = Math.round(((Math.random() * 4) + 1)) + '';
                 //console.log(random_num)
                 let congestion_info = Congestion_color[Live_Congestion[0]] // 取得壅塞等級對應的壅塞資訊
-                let update_time = Live_Congestion[1] // 取得更新時間
+                let update_time = new Date(Live_Congestion[1]).addHours(8) // 取得更新時間
                 let update_interval = Live_Congestion[2] // 更新頻率
                 let travel_time = Live_Congestion[3] // 旅行時間
                 let travel_speed = Live_Congestion[4] // 旅行速度
+                if (travel_speed == 250) {
+                    congestion_info = Congestion_color['-1']
+                }
                 Section_GeoJSON.features.push({
                     "type": "Feature",
                     "properties": {
@@ -121,7 +130,7 @@ export async function Get_TDX_Live({ useExistToken = true }) {
         } else {
             Return_Result.error = { 
                 data: Fetch_Info.fetch_data,
-                error: Fetch_Info.fetch_exception_error || Fetch_Info.fetch_error_format,
+                error: Fetch_Info.fetch_exception_error, //|| Fetch_Info.fetch_error_format,
                 status: Fetch_Info.fetch_status_code
             }
             return Return_Result

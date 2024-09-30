@@ -89,4 +89,4 @@ export default function RootLayout({ children }) {
     );
 }
 
-export const runtime = 'edge' // 'nodejs' (default) | 'edge'
+export const runtime = 'nodejs' // 'nodejs' (default) | 'edge'
