@@ -1,5 +1,6 @@
 import util from 'util'
 import { Supabase_CRUD } from '@/lib/supabase/client'
+import { Congestion_color as Congestion_colors } from '@/lib/map/mapconfig'
 
 Date.prototype.addHours = function (h) {
     this.setTime(this.getTime() + (h * 60 * 60 * 1000));
@@ -103,14 +104,7 @@ export async function Get_TDX_Forecast({ date }) {
 
 
         // 壅塞等級對應的壅塞資訊
-        const Congestion_color = {
-            '1': ['最順暢🔵', '#005ff5'], // 最順暢
-            '2': ['順暢🟢', '#00ff4c'],
-            '3': ['正常🟡', '#ffff37'],
-            '4': ['壅塞🟠', '#ff8000'],
-            '5': ['最壅塞🔴', '#ff0000'], // 最壅塞
-            '-1': ['道路封閉⛔', '#7d3636'] // 道路封閉
-        }
+        const Congestion_color = Congestion_colors
 
         var Section_GeoJSON = {
             "type": "FeatureCollection",

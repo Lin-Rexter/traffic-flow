@@ -66,16 +66,17 @@ export const useGetTraffic = (disabled = false, useExistToken = true, time = [])
         const res = await fetch(url)
         const response = await res.json()
 
-        if (res.ok) {
+        if (res.ok && response?.error) {
             setIsAPIRateLimit(false)
         }
 
         if (!res.ok || response.error) {
             let error = new Error()
-            error.info = response.error
+            error.info = response?.error
             error.status = res.status
 
             if (error?.info?.status?.includes(429)) {
+                error.info = null
                 setIsAPIRateLimit(true)
             } else {
                 setIsAPIRateLimit(false)
@@ -84,7 +85,7 @@ export const useGetTraffic = (disabled = false, useExistToken = true, time = [])
             throw error
         }
 
-        return response
+        return response 
     }
 
     //clearCache()
@@ -121,7 +122,9 @@ export const useGetTraffic = (disabled = false, useExistToken = true, time = [])
         if (!IsAPIRateLimit) {
             warn = null
         } else {
-            warn = "[系統繁忙]\n目前為舊資料，正在努力取得最新資料中🤯，請稍後..."
+            error = null
+            //warn = "[系統繁忙]\n目前為舊資料，正在努力取得最新資料中🤯，請稍後..."
+            console.warn("[系統繁忙]\n目前為舊資料，正在努力取得最新資料中🤯，請稍後...")
         }
 
         return [data, error, warn]

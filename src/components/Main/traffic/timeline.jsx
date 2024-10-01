@@ -17,6 +17,7 @@ import { GetTDXDate } from '@/lib/tdx/all_date'
 import { DiffDays } from '@/lib/utils'
 
 
+
 Date.prototype.addHours = function (h) {
     this.setTime(this.getTime() + (h * 60 * 60 * 1000));
     return this;
@@ -39,7 +40,12 @@ var time_len = 0
 const Timeline = () => {
     const { selectedTime, setSelectedTime } = useTime();
     const [selectedIndex, setSelectedIndex] = useState(0);
-    const [selectedDay, setSelectedDay] = useState(0);
+    const [filterTimeList, setFilterTimeList] = useState([]); // 儲存篩選後的時間列表
+
+    const [isShowFuture, setIsShowFuture] = useState(false);
+    const [isShowHistory, setIsShowHistory] = useState(false);
+    const [isShowRealtime, setIsShowRealtime] = useState(false);
+
     const [isDragging, setIsDragging] = useState(false);
     const timelineRef = useRef(null);
 
@@ -107,7 +113,7 @@ const Timeline = () => {
             //if (item.getHours() != 12) return;
 
             const item_date = new Date(item).toLocaleString('zh-Hant-TW') + ' ' + `(禮拜${dayNames[new Date(item).getDay()]})`
-            const item_dates = new Date(item).addHours(8).toISOString()
+            const item_dates = new Date(item).addHours(0).toISOString()
             // 小於0表示預測資料天數
             if (diffDays < 0) {
                 diffDays = Math.abs(diffDays)
@@ -163,59 +169,112 @@ const Timeline = () => {
 
     // 取得選擇的禮拜幾
     const getButtonDay = (e) => {
-        // 取得button的data-value屬性值
-        console.log(e)
-        //setSelectedDay(e.target)
+        // 初始化filterTimeList
+        setFilterTimeList([])
+
+        const dayToNumber = {
+            "一": 1,
+            "二": 2,
+            "三": 3,
+            "四": 4,
+            "五": 5,
+            "六": 6,
+            "日": 7
+        }
+        let selectedDay = dayToNumber[e.target.innerText.slice(2)]
+
+        setFilterTimeList(
+            timeMarkers.filter((item) => new Date(item.dates).getDay() === selectedDay)
+        )
     };
 
+    // 點擊歷史時間按鈕
+    const history_button = () => {
+        setIsShowHistory(!isShowHistory);
+    }
+
+    // 點擊即時時間按鈕
+    const realtime_button = () => {
+        // 初始化filterTimeList
+        setFilterTimeList([])
+
+        setIsShowRealtime(!isShowRealtime);
+
+        // 跳至即時資料
+        setSelectedIndex(() => {
+            const RealTimeIndex = Object.keys(timeMarkers).filter(function (key) {
+                return timeMarkers[key].value == 0
+            })
+            return Number(RealTimeIndex)
+        })
+    }
+
+    // 點擊未來時間按鈕
+    const future_button = () => {
+        // 初始化filterTimeList
+        setFilterTimeList([])
+
+        setIsShowFuture(!isShowFuture);
+        setFilterTimeList(timeMarkers.filter((item) => item.value > 0))
+        setSelectedIndex(0);
+    }
+
+
     var day_icon = [
-        <TbSquareRoundedNumber7Filled className="h-5 w-5" color="dark" />,
         <TbSquareRoundedNumber1Filled className="h-5 w-5" color="dark" />,
         <TbSquareRoundedNumber2Filled className="h-5 w-5" color="dark" />,
         <TbSquareRoundedNumber3Filled className="h-5 w-5" color="dark" />,
         <TbSquareRoundedNumber4Filled className="h-5 w-5" color="dark" />,
         <TbSquareRoundedNumber5Filled className="h-5 w-5" color="dark" />,
         <TbSquareRoundedNumber6Filled className="h-5 w-5" color="dark" />,
+        <TbSquareRoundedNumber7Filled className="h-5 w-5" color="dark" />
     ]
 
+    if (filterTimeList?.length > 0) {
+        console.log(filterTimeList)
+        timeMarkers = filterTimeList
+    }
     return (((Forecast_Date_list?.length > 0) && (Hx_Date_list?.length > 0)) && (
         <div className="w-2/3 max-w-2xl">
             <div className="relative rounded-full mb-2">
-                <form className="flex">
+                <form className="grid w-fit">
+                    {//isShowHistory &&
+                        (<div className={`grid bg-gray-300 border-[2px] border-gray-100 grid-cols-auto sm:grid-cols-7 mb-2 rounded-lg gap-1 w-max ${isShowHistory ? 'opacity-100' : 'opacity-0'} transition-all ease-in-out duration-200`}>
+                            {
+                                dayNames.map((day, index) => (
+                                    <Button type="button" key={index} color="light" className="flex font-bold items-center border-gray-800 select-none" onClick={getButtonDay}>
+                                        <div className="flex flex-row justify-between sm:flex-col sm:justify-center items-center" >
+                                            {day_icon[index % day_icon.length]}
+                                            <span className=""> 禮拜{dayNames[(index + 1) % dayNames.length]} </span>
+                                        </div>
+                                    </Button>
+                                ))
+                            }
+                        </div>)
+                    }
                     <Button.Group className="flex justify-start items-center">
-                        <Button type="button" color="cyan" className="flex font-bold items-center border-[2px] border-gray-800 mr-1">
+                        {/* 歷史時間 */}
+                        <Button type="button" color="cyan" className="flex rounded-full font-bold items-center border-[2px] border-gray-800 mr-1 p-0 select-none" onClick={history_button}>
                             <div className="flex flex-col justify-center items-center p-0 m-0" >
-                                <FaHistory className="h-5 w-5 mb-1" color="dark" />
-                                <Dropdown label="歷史" placement="top" className="bottom-xs p-0 m-0 border-0 focus:outline-none">
-                                    {
-                                        dayNames.map((day, index) => (
-                                            <Dropdown.Item>
-                                                <Button type="button" color="light" key={index} className="flex font-bold items-center border-[2px] border-gray-800 m-0 p-0" onClick={getButtonDay}>
-                                                    <div className="flex flex-col justify-center items-center p-0 m-0" >
-                                                        {day_icon[index]}
-                                                        <span className="hidden sm:block"> 禮拜{day} </span>
-                                                    </div>
-                                                </Button>
-                                            </Dropdown.Item>
-                                        ))
-                                    }
-                                </Dropdown>
+                                <FaHistory className="h-5 w-5 sm:mb-2" color="dark" />
+                                <span className="hidden sm:block"> 歷史 </span>
                             </div>
                         </Button>
-                        <Button type="button" color="cyan" className="flex font-bold items-center border-[2px] border-gray-800 mr-1 h-full" onClick={getButtonDay}>
+                        {/* 即時時間 */}
+                        <Button type="button" color="cyan" className="flex rounded-full font-bold items-center border-[2px] border-gray-800 mr-1 p-0 select-none" onClick={realtime_button}>
                             <div className="flex flex-col justify-center items-center p-0 m-0" >
-                                <FaFireAlt className="h-5 w-5 mb-3" color="dark" />
+                                <FaFireAlt className="h-5 w-5 sm:mb-2" color="dark" />
                                 <span className="hidden sm:block"> 即時 </span>
                             </div>
                         </Button>
-                        <Button type="button" color="cyan" className="flex font-bold items-center border-[2px] border-gray-800 mr-1 h-full" onClick={getButtonDay}>
+                        {/* 未來時間 */}
+                        <Button type="button" color="cyan" className="flex rounded-full font-bold items-center border-[2px] border-gray-800 mr-1 p-0 select-none" onClick={future_button}>
                             <div className="flex flex-col justify-center items-center p-0 m-0" >
-                                <SiFuturelearn className="h-5 w-5 mb-3" color="dark" />
+                                <SiFuturelearn className="h-5 w-5 sm:mb-2" color="dark" />
                                 <span className="hidden sm:block"> 未來 </span>
                             </div>
                         </Button>
                     </Button.Group>
-
                 </form>
             </div>
             <div className="relative h-4 bg-blue-200 rounded-full cursor-pointer select-none"

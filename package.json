@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@google/generative-ai": "^0.16.1",
+    "@googlemaps/google-maps-services-js": "^3.4.0",
     "@reduxjs/toolkit": "^2.2.7",
     "@supabase/ssr": "^0.4.1",
     "@supabase/supabase-js": "^2.45.4",

@@ -99,7 +99,7 @@ export default async function Fetch_Data({ AccessToken = '', Token_Expires = 0, 
                 })
             );
         } catch (e) {
-            fetch_exception_error = e;
+            fetch_exception_error = e.message;
             console.error('[fetch_TDX]意外錯誤: ', e.message)
         }
     } else {

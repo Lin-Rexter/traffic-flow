@@ -1,5 +1,6 @@
 import GetAccessToken from '@/lib/tdx/auth'
 import Fetch_Data from '@/lib/tdx/fetch_TDX'
+import { Congestion_color as Congestion_colors} from '@/lib/map/mapconfig'
 
 
 Date.prototype.addHours = function (h) {
@@ -83,14 +84,7 @@ export async function Get_TDX_Live({ useExistToken = true }) {
 
             // 4. 將各個路段的經緯度跟壅塞程度合併
             // 壅塞等級對應的壅塞資訊
-            const Congestion_color = {
-                '1': ['最順暢🔵', '#005ff5'], // 最順暢
-                '2': ['順暢🟢', '#00ff4c'],
-                '3': ['正常🟡', '#ffff37'],
-                '4': ['壅塞🟠', '#ff8000'],
-                '5': ['最壅塞🔴', '#ff0000'], // 最壅塞
-                '-1': ['道路封閉⛔', '#7d3636'] // 道路封閉
-            }
+            const Congestion_color = Congestion_colors
             var Section_GeoJSON = {
                 "type": "FeatureCollection",
                 "features": []
@@ -115,6 +109,7 @@ export async function Get_TDX_Live({ useExistToken = true }) {
                         "id": item.SectionID,
                         "describe": congestion_info[0],
                         "color": congestion_info[1],
+                        //"congestion_level": Live_Congestion[0],
                         "update_time": update_time,
                         "update_interval": update_interval,
                         "travel_time": travel_time,
@@ -128,9 +123,9 @@ export async function Get_TDX_Live({ useExistToken = true }) {
             Return_Result.data = Section_GeoJSON
             return Return_Result
         } else {
-            Return_Result.error = { 
-                data: Fetch_Info.fetch_data,
-                error: Fetch_Info.fetch_exception_error, //|| Fetch_Info.fetch_error_format,
+            Return_Result.error = {
+                //data: Fetch_Info.fetch_data,
+                //error: Fetch_Info.fetch_exception_error, //|| Fetch_Info.fetch_error_format,
                 status: Fetch_Info.fetch_status_code
             }
             return Return_Result

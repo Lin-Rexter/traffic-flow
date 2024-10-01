@@ -133,7 +133,7 @@ const ChatBubble = () => {
                     AI助手
                 </button>
             ) : (
-                <div className="bg-gray-100 rounded-lg shadow-xl w-[90vw] sm:w-[350px] md:w-[400px] lg:w-[450px] max-w-[500px] h-[60vh] sm:h-[70vh] md:h-[80vh] flex flex-col">
+                <div className={`bg-gray-100 rounded-lg shadow-xl w-[90vw] sm:w-[350px] md:w-[400px] lg:w-[450px] max-w-[500px] h-[62vh] flex flex-col ${isOpen ? 'opacity-100' : 'opacity-0'} transition-all delay-200 ease-in-out duration-200`}>
                     <div className="bg-blue-500 text-white p-2 sm:p-4 rounded-t-lg flex justify-between items-center">
                         <h3 className="font-bold text-sm sm:text-base">AI助手</h3>
                         <div>

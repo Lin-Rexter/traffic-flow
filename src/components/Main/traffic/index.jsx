@@ -89,10 +89,12 @@ const HomePage = () => {
                         {<Dynamic_LocationAggregatorMap off={false} useExistToken={false} /> || <Skeleton />}
                     </Suspense>
 
+                    {/* 時間軸 */}
                     <div className="fixed bottom-28 left-8 w-full">
                         {<DynamicTimeline /> || <Skeleton count={5} />}
                     </div>
 
+                    {/* AI助手 */}
                     <div className="fixed bottom-20 right-4 w-auto">
                         {<DynamicChatBubble /> || <Skeleton count={5} />}
                     </div>

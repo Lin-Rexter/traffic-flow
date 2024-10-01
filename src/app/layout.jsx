@@ -1,5 +1,7 @@
 import { Suspense } from "react";
 import dynamic from "next/dynamic";
+import Script from 'next/script'
+import Link from 'next/link'
 import { Inter } from "next/font/google";
 import localFont from 'next/font/local'
 import "@/styles/globals.css";
@@ -34,7 +36,7 @@ const myFont = localFont({
     src: '../../public/fonts/NaikaiFont-Regular-Lite.ttf',
     display: 'swap',
     preload: true
-})  
+})
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -47,6 +49,9 @@ export const metadata = {
 export default function RootLayout({ children }) {
     return (
         <html lang="zh-Hant-TW" className={myFont.className} suppressHydrationWarning>
+            <head>
+                <link href="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.css" rel="stylesheet" />
+            </head>
             <body className="h-screen">
                 <Suspense fallback={<Loading />} className={inter.className}>
                     <Providers>
@@ -84,6 +89,7 @@ export default function RootLayout({ children }) {
                         </div>
                     </Providers>
                 </Suspense>
+                <script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.js" crossOrigin="anonymous"></script>
             </body>
         </html>
     );

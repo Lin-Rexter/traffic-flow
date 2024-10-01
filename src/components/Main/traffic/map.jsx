@@ -17,14 +17,15 @@ import { Toast_Component } from "@/components/utils/toast";
 import { Info_Component } from "@/components/Main/traffic/info_drawer.jsx";
 import { useGetTraffic } from "@/hooks/useGetTraffic";
 import { useTime, useDrawer } from "@/context";
+import { Client } from "@googlemaps/google-maps-services-js";
 
+//const client = new Client({});
+
+//client.placeQueryAutocomplete();
 
 // 取得MapBox金鑰
 const mapbox_api_key = process.env.NEXT_PUBLIC_MAPBOX_TOKENS;
 
-
-// 設置視覺化地圖內容
-var last_data = null
 //var [data, error, warn] = [null, null, null]
 const LocationAggregatorMap = ({ off, useExistToken }) => {
     // 取得時間軸指定日期
@@ -33,10 +34,13 @@ const LocationAggregatorMap = ({ off, useExistToken }) => {
     const { showDrawer, setShowDrawer } = useDrawer();
 
     // 儲存使用者經緯度
-    const [location, setLocation] = useState();
+    const [location, setLocation] = useState(null);
 
     // 儲存觀看座標、縮放等資訊
     const [initialViewState, setInitialViewState] = useState(INITIAL_VIEW_STATE.SF)
+
+    // 儲存緩衝地圖資料
+    const [MapData, setMapData] = useState(null);
 
     // 儲存點擊的路段資訊
     const [coordinate, setCoordinate] = useState([0, 0]);
@@ -53,16 +57,72 @@ const LocationAggregatorMap = ({ off, useExistToken }) => {
     const [searchSection, setSearchSection] = useState(false);
     const [search, setSearch] = useState("");
 
+    // 更新初始座標起始點(如果已儲存使用者位置)
+    useEffect(() => {
+        const UserLocation = JSON.parse(window.localStorage.getItem("UserLocation"));
+
+        if (UserLocation) {
+            setInitialViewState(UserLocation)
+
+            INITIAL_VIEW_STATE.SF = UserLocation
+        }
+    }, [])
+
+    useEffect(() => {
+        // 取得使用者經緯度 [使用者同意取得位置權限時]
+        if ('geolocation' in navigator) {
+            navigator.geolocation.getCurrentPosition(({ coords }) => {
+                const { latitude, longitude } = coords;
+
+                setLocation({ latitude, longitude });
+                INITIAL_VIEW_STATE.NYC.latitude = latitude;
+                INITIAL_VIEW_STATE.NYC.longitude = longitude;
+
+                // 儲存至LocalStorage
+                window.localStorage.setItem("UserLocation", JSON.stringify(INITIAL_VIEW_STATE.NYC))
+            })
+        }
+    }, []);
+
+    // 前往目標座標點過渡動畫
+    useEffect(() => {
+        setTimeout(() => {
+            setInitialViewState(({
+                ...INITIAL_VIEW_STATE['NYC'],
+                transitionInterpolator: new FlyToInterpolator({ speed: 2 }),
+                transitionDuration: 'auto',
+            }));
+        }, 1000);
+    }, [location]);
+
     // 取得壅塞資料
     var [data, error, warn] = useGetTraffic(off, useExistToken, selectedTime)
 
-    if (data) {
-        const now = new Date();
-        const location_time = now.toLocaleString();
-        console.log(`${location_time}: 壅塞資料已更新! (每60秒)`);
+    // 更新壅塞緩存資料
+    useEffect(() => {
+        if (data) {
+            data = ((Object.keys(data.data).length == 1) || !data.error) ? data.data : null
 
-        last_data = ((Object.keys(data.data).length == 1) || !data.error) ? data.data : null
-    }
+            const cache_data = window.localStorage.getItem("map_data");
+            // 當無緩存資料或有最新資料時，儲存至local
+            if ((cache_data === null) || (cache_data !== JSON.stringify(data))) {
+                const location_time = new Date().toLocaleString('zh-Hant-TW');
+                console.log(`${location_time}: 壅塞資料已更新! (每60秒)`);
+
+                window.localStorage.setItem("map_data", JSON.stringify(data));
+            }
+
+            // 當資料無效時或緩存資料存在時則使用緩存資料
+            if ((data === null) || (window.localStorage.getItem("map_data") !== null)) {
+                setMapData(JSON.parse(window.localStorage.getItem("map_data")))
+            } else {
+                setMapData(data)
+            }
+        } else {
+            setMapData(JSON.parse(window.localStorage.getItem("map_data")))
+        }
+    }, [data]);
+
 
     // 提示框(tooltip)
     function getTooltip({ object }) {
@@ -97,44 +157,21 @@ const LocationAggregatorMap = ({ off, useExistToken }) => {
         }
     }, []);
 
-    // 取得使用者經緯度 [使用者同意取得位置權限時]
-    useEffect(() => {
-        if ('geolocation' in navigator) {
-            navigator.geolocation.getCurrentPosition(({ coords }) => {
-                const { latitude, longitude } = coords;
-                setLocation({ latitude, longitude });
-                INITIAL_VIEW_STATE.NYC.latitude = latitude;
-                INITIAL_VIEW_STATE.NYC.longitude = longitude;
-            })
-        }
-    }, []);
-
-    // 前往座標點過度動畫
-    useEffect(() => {
-        setTimeout(() => {
-            setInitialViewState(({
-                ...INITIAL_VIEW_STATE['NYC'],
-                transitionInterpolator: new FlyToInterpolator({ speed: 2 }),
-                transitionDuration: 'auto',
-            }));
-        }, 1000);
-    }, [location, data]);
-
     // 搜尋路段前往座標點
     useEffect(() => {
-        
+
     }, [search]);
 
     return (
         <div className="grid h-full w-full">
             {/* 地圖視覺化 */}
             <DeckGL
-                layers={Layer_GeoJson(last_data ? last_data : null)} // 自訂的視覺化圖層(GeoJson)
+                layers={Layer_GeoJson(!MapData?.error ? MapData : null)} // 自訂的視覺化圖層(GeoJson)
                 effects={[lightingEffect]}
                 initialViewState={initialViewState}
                 controller={true}
                 getTooltip={getTooltip}
-                style={{ width: '100%', height: '100%' }}
+                style={{ width: '100%', height: '100%', fontWeight: 'bold', fontSize: '16px' }}
                 onClick={onClick}
             >
                 {/* 以MapBox地圖為基底 */}
@@ -145,16 +182,23 @@ const LocationAggregatorMap = ({ off, useExistToken }) => {
                     mapStyle="mapbox://styles/retex/clybowush00n301pr4vuz4fbf"
                     onRender={(event) => event.target.resize()}
                 >
-                    <Marker longitude={location ? location.longitude : initialViewState.longitude} latitude={location ? location.latitude : initialViewState.latitude} color="red" />
+                    <Marker
+                        longitude={location ? location.longitude : initialViewState.longitude}
+                        latitude={location ? location.latitude : initialViewState.latitude}
+                        color="red"
+                    />
                 </Map>
             </DeckGL>
-            <div className='fixed flex justify-end top-20 right-1 z-[9999] w-full sm:max-w-lg md:max-w-md lg:max-w-sm'>
-                {searchSection &&
-                    <div className={`relative mr-2`}>
-                        <FloatingLabel variant="filled" label="搜尋路段..." sizing="md" value={search} onChange={e => setSearch(e.target.value)} className={`flex rounded rounded-lg w-full h-fit text-xl ${searchSection ? "opacity-100" : "opacity-0"} transition-all ease-in-out delay-150 duration-300`} />
+            {/* 搜尋輸入框 */}
+            <div className='fixed top-32 sm:top-28 md:top-26 lg:top-20 flex flex-col md:flex-row flex-wrap md:flex-nowrap flex-auto justify-end items-end md:items-center right-1 z-[9999] w-auto sm:max-w-lg md:max-w-md lg:max-w-md'>
+                {
+                    <div className={`relative md:mr-2 mt-2`}>
+                        <FloatingLabel variant="filled" label="搜尋路段..." sizing="md" value={search} onChange={e => setSearch(e.target.value)}
+                            className={`flex rounded rounded-lg h-auto select-none cursor-text text-xl ${searchSection ? "opacity-100 w-72" : "opacity-0 w-0"} transition-all ease-in-out duration-200`}
+                        />
                     </div>
                 }
-                {<Button type="button" color="cyan" className="flex font-bold items-center border-[2px] border-gray-800 h-fit" onClick={() => setSearchSection(!searchSection)}>
+                {<Button type="button" color="cyan" className="flex order-first md:order-none font-bold items-center border-[2px] border-gray-800 h-fit w-fit" onClick={() => setSearchSection(!searchSection)}>
                     <div className="flex flex-col justify-center items-center p-0 m-0" >
                         <TbMapSearch className='h-5 w-5' />
                         <span className="hidden sm:block"> 搜尋路段 </span>
@@ -162,6 +206,7 @@ const LocationAggregatorMap = ({ off, useExistToken }) => {
                 </Button>}
             </div>
             {
+                // 壅塞資訊側邊欄
                 showDrawer && <Info_Component
                     coordinate={coordinate}
                     color={color}
@@ -177,8 +222,8 @@ const LocationAggregatorMap = ({ off, useExistToken }) => {
             {
                 warn &&
                 <Toast_Component
-                    icon_text={"警告訊息"}
-                    title={"警告訊息"}
+                    icon_text={"系統訊息"}
+                    title={"系統訊息"}
                     contents={warn}
                 />
             }
@@ -186,8 +231,8 @@ const LocationAggregatorMap = ({ off, useExistToken }) => {
                 (!warn && error) &&
                 <Toast_Component
                     icon_text={"系統訊息"}
-                    title={"錯誤訊息"} // error.status
-                    contents={JSON.stringify(error.info, null, 1)}
+                    title={"警告訊息"} // error.status
+                    contents={Array.isArray(error.info) ? error.info : JSON.stringify(error.info, null, 1)}
                 />
             }
             {
@@ -195,7 +240,7 @@ const LocationAggregatorMap = ({ off, useExistToken }) => {
                 <Toast_Component
                     icon_text={"系統訊息"}
                     title={"系統訊息"}
-                    contents={`正在載入 ${(selectedTime?.[0] == 0) ? '即時' : Math.abs(selectedTime?.[0] / 24) + ((selectedTime?.[0] < 0) ? '天前' : '天後')} 之資料`}
+                    contents={`正在載入 ${(selectedTime?.[0] == 0) ? '最新即時' : Math.abs(selectedTime?.[0] / 24) + ((selectedTime?.[0] < 0) ? '天前' : '天後')} 之資料`}
                 />
             }
         </div>
