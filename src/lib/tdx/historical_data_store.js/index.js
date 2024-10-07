@@ -117,9 +117,9 @@ export async function Store_TDX_Historical({ date, useExistToken = true }) {
             return Return_Result
         } else {
             Return_Result.error = {
-                data: Fetch_Info.fetch_data,
-                error: Fetch_Info.fetch_exception_error || Fetch_Info.fetch_error_format,
-                status: Fetch_Info.fetch_status_code
+                //data: Fetch_Info.fetch_data,
+                error: Fetch_Info.fetch_exception_error || Fetch_Info.fetch_error_format, // || Fetch_Info.fetch_exception_error,
+                status: Fetch_Info.fetch_status_code || AccessToken_info.status_code 
             }
             return Return_Result
         }

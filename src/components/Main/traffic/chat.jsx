@@ -1,7 +1,13 @@
 "use client"
 import { useState, useEffect, useRef } from 'react';
 import { FaSmile, FaSearch, FaPaperclip } from 'react-icons/fa';
+import { IoMdClose } from "react-icons/io";
+import { MdKeyboardVoice } from "react-icons/md";
 import { gemini_ask } from '@/app/api/ai/gemini'
+import { Effect } from 'deck.gl';
+import { marked } from 'marked';
+
+
 
 const ChatBubble = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -10,9 +16,14 @@ const ChatBubble = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [isTyping, setIsTyping] = useState(false);
-    const [test, settest] = useState('')
+    //const [test, setTest] = useState('')
     const messagesEndRef = useRef(null);
-    const [geminiMsg, setgeminiMsg] = useState('');
+    const [geminiMsg, setGeminiMsg] = useState('');
+
+    // 語音設置
+    const [recognition, setRecognition] = useState(null);
+    const [isActive, setIsActive] = useState(false);
+    const language = 'zh-TW';
 
     const toggleChat = () => setIsOpen(!isOpen);
     const toggleSearch = () => setIsSearchOpen(!isSearchOpen);
@@ -22,9 +33,39 @@ const ChatBubble = () => {
     };
     useEffect(scrollToBottom, [messages]);
 
+
+    // 語音處理 - 錄音開始
+    const startRecording = () => {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+
+        recognition.lang = language;
+        recognition.onresult = async function (event) {
+            console.log(event)
+            const transcript = event.results[0][0].transcript;
+            setMessage(transcript);
+        }
+
+        setRecognition(recognition)
+        recognition.start();
+
+        setIsActive(true)
+    }
+
+    // 語音處理 - 錄音結束
+    const stopRecording = () => {
+        if (isActive) {
+            recognition.stop();
+            setIsActive(false);
+        }
+    };
+
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (message.trim() === '') return;
+        if ((message.trim() === '') || isTyping) return;
+
+        // 停止錄音
+        stopRecording();
 
         // 使用者訊息包裝
         const newMessage = {
@@ -39,37 +80,53 @@ const ChatBubble = () => {
     };
 
     // 當顯示打字中時，觸發此函數(取得AI回應)
-    async function Gemini_Output() {
-        //console.log(message)
-        if (message) {
-            const result = await gemini_ask(message)
-            setgeminiMsg(result)
-            setMessage('');
+    useEffect(() => {
+        if (isTyping) {
+            const Gemini_Output = async () => {
+                if (message) {
+                    setMessage('');
+
+                    let result = await gemini_ask(message)
+
+                    if (result?.error) {
+                        result.data = result?.error || '[系統錯誤] 次數過於頻繁，請稍後再次與AI互動!'
+                        setGeminiMsg(result.data)
+                    } else {
+                        setGeminiMsg(result.data) //[0].generated_text
+                    }
+                }
+            }
+
+            Gemini_Output()
         }
-    }
-    useEffect(() => { Gemini_Output() }, [isTyping])
+    }, [isTyping])
 
     // 當有儲存AI回應時，觸發此函數(將AI回應顯示在聊天室裡)
-    async function Gemini_Append() {
+    useEffect(() => {
         if (geminiMsg) {
-            // 顯示正在輸入中...
-            setTimeout(() => {
-                // AI訊息包裝
-                const botReply = {
-                    id: Date.now(),
-                    text: geminiMsg, //`您好，我收到了您的訊息："${}"`, // 這裡放AI訊息回應函式
-                    time: new Date(),
-                    sender: 'bot',
-                    reactions: []
-                };
-                addMessageToGroup(botReply);
+            const Gemini_Append = async () => {
+                // 顯示正在輸入中...
+                setTimeout(() => {
+                    // AI訊息包裝
+                    const botReply = {
+                        id: Date.now(),
+                        text: geminiMsg, //`您好，我收到了您的訊息："${}"`, // 這裡放AI訊息回應函式
+                        time: new Date(),
+                        sender: 'bot',
+                        reactions: []
+                    };
+                    addMessageToGroup(botReply);
 
-                // 關閉顯示正在輸入中...
-                setIsTyping(false);
-            }, 100);
+                    // 關閉顯示正在輸入中...
+                    setIsTyping(false);
+                }, 100);
+            }
+
+            Gemini_Append()
+
+            setGeminiMsg("")
         }
-    }
-    useEffect(() => { Gemini_Append() }, [geminiMsg])
+    }, [geminiMsg])
 
     // 訊息包裝
     const addMessageToGroup = (newMessage) => {
@@ -102,7 +159,6 @@ const ChatBubble = () => {
                     : [...message.reactions, reaction];
                 group.messages[messageIndex] = { ...message, reactions: newReactions };
             }
-            console.log(newMessages)
             return newMessages;
         });
     };
@@ -114,7 +170,6 @@ const ChatBubble = () => {
         const res = messages.filter(
             msg_group => msg_group.messages[0].text.toLowerCase().includes(searchTerm.toLowerCase())
         )
-        console.log(res)
         return res
     }
 
@@ -123,64 +178,74 @@ const ChatBubble = () => {
         ? searchMsgFilter()
         : messages;
 
+
+
     return (
-        <div className="z-50 relative">
-            {!isOpen ? (
+        <div className="z-[99999] relative">
+            {!isOpen && (
                 <button
                     onClick={toggleChat}
-                    className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full shadow-lg"
+                    className="text-stone-100 bg-gradient-to-r from-cyan-500 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-cyan-300 dark:focus:ring-cyan-800 font-bold py-2 px-4 rounded-full shadow-lg select-none"
                 >
                     AI助手
                 </button>
-            ) : (
-                <div className={`bg-gray-100 rounded-lg shadow-xl w-[90vw] sm:w-[350px] md:w-[400px] lg:w-[450px] max-w-[500px] h-[62vh] flex flex-col ${isOpen ? 'opacity-100' : 'opacity-0'} transition-all delay-200 ease-in-out duration-200`}>
-                    <div className="bg-blue-500 text-white p-2 sm:p-4 rounded-t-lg flex justify-between items-center">
-                        <h3 className="font-bold text-sm sm:text-base">AI助手</h3>
-                        <div>
-                            <button onClick={toggleSearch} className="mr-2 p-2">
-                                <FaSearch />
-                            </button>
-                            <button onClick={toggleChat} className="text-xl">&times;</button>
-                        </div>
+            )}
+            {isOpen &&
+                (<div className='z-[10000] fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full h-full backdrop-blur-sm bg-white/5'></div>)
+            }
+            <div className={`z-[99999] fixed flex flex-col rounded-lg shadow-xl py-6 w-[90vw] sm:w-[400px] md:w-[420px] lg:w-[500px] max-w-[600px] top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 ${isOpen ? 'opacity-100 h-[75vh] visible' : 'opacity-0 h-[0vh] invisible'} transition-all ease-in-out duration-300`}>
+                <div className="bg-teal-500 h-fit text-white p-2 sm:p-4 rounded-t-lg flex justify-between items-center">
+                    <h3 className="font-bold text-sm sm:text-base flex justify-center items-center">AI助手</h3>
+                    <div className='flex justify-center items-center'>
+                        <button onClick={toggleSearch} className="mr-2 p-1 rounded-md hover:bg-blue-600">
+                            <FaSearch className="h-4 w-4" />
+                        </button>
+                        <button onClick={toggleChat} className="rounded-md hover:bg-red-400">
+                            <IoMdClose className="h-6 w-6" />
+                        </button>
                     </div>
-                    {isSearchOpen && (
-                        <div className="p-2 border-b">
-                            <input
-                                type="text"
-                                placeholder="搜尋訊息..."
-                                /*value={searchTerm}*/
-                                onChange={(e) => {
-                                    setSearchTerm(e.target.value)
-                                }}
-                                className="w-full p-2 rounded border text-black"
-                            />
-                        </div>
-                    )}
-                    <div className="flex-1 p-2 sm:p-4 overflow-y-auto bg-black">
+                </div>
+
+                <div className={`p-2 border-b bg-teal-300 ${isSearchOpen ? "h-fit opacity-100 visible top-5 mt-0" : "h-0 opacity-0 invisible mt-[-20]"} transition-all ease-in-out duration-100`}>
+                    <input
+                        type="text"
+                        placeholder="搜尋訊息..."
+                        /*value={searchTerm}*/
+                        onChange={(e) => {
+                            setSearchTerm(e.target.value)
+                        }}
+                        className="w-full p-2 rounded border text-black font-bold"
+                    />
+                </div>
+
+                <div className="flex-1 p-1 sm:p-2 h-full bg-slate-200 dark:bg-neutral-800 transition-all ease-in-out duration-200">
+                    <div className='border-4 border-slate-200 dark:border-neutral-800 bg-slate-200 dark:bg-neutral-800 shadow-[inset_0_0_6px_1px_rgba(100,100,100,0.8)] rounded-xl w-full h-full p-4 m-0 overflow-y-auto'>
                         {filteredMessages.map((group, groupIndex) => (
                             <div key={groupIndex} className={`mb-4 ${group.sender === 'user' ? 'text-right' : 'text-left'}`}>
                                 {group.messages.map((msg, msgIndex) => (
-                                    <div key={msg.id} className="mb-1">
-                                        <div className={`inline-block px-2 py-1 rounded-lg ${group.sender === 'user' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-black'}`}>
-                                            <p>{msg.text}</p>
-                                            <div className="text-right">
-                                                {group.sender === 'bot' && (
-                                                    <div className="inline-flex mt-2 space-x-2 bg-orange-100 rounded-lg px-2 py-0.5">
-                                                        {['👍', '❤️', '👎'].map(reaction => (
-                                                            <button
-                                                                key={reaction}
-                                                                onClick={() => addReaction(groupIndex, msg.id, reaction)}
-                                                                className={`text-xs bg-orange-400 p-1 rounded-full hover:opacity-100 ${msg.reactions && msg.reactions.includes(reaction) ? 'opacity-100' : 'opacity-50'}`}
-                                                            >
-                                                                {reaction}
-                                                            </button>
-                                                        ))}
-                                                    </div>
-                                                )}
-                                            </div>
+                                    <div key={msg.id} className="mb-1 font-Naikai">
+                                        <div className={`inline-block font-semibold px-2 py-1 rounded-lg ${group.sender === 'user' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-black'}`}>
+                                            <div className='max-w-sm flex flex-wrap flex-auto text-ellipsis overflow-hidden' dangerouslySetInnerHTML={{ __html: marked.parse(msg.text) }}></div>
+                                            {/*
+                                        <div className="text-right">
+                                            {group.sender === 'bot' && (
+                                                <div className="inline-flex mt-2 space-x-2 bg-orange-100 rounded-lg px-2 py-0.5">
+                                                    {['👍', '❤️', '👎'].map(reaction => (
+                                                        <button
+                                                            key={reaction}
+                                                            onClick={() => addReaction(groupIndex, msg.id, reaction)}
+                                                            className={`text-xs bg-orange-400 p-1 rounded-full hover:opacity-100 ${msg.reactions && msg.reactions.includes(reaction) ? 'opacity-100' : 'opacity-50'}`}
+                                                        >
+                                                            {reaction}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                        */}
                                         </div>
                                         {msgIndex === (group.messages.length - 1) && (
-                                            <p className="text-xs mt-1 opacity-80 text-white">
+                                            <p className="text-sm mt-1 opacity-80 font-semibold">
                                                 {new Date(msg.time).toLocaleTimeString()}
                                             </p>
                                         )}
@@ -188,34 +253,47 @@ const ChatBubble = () => {
                                 ))}
                             </div>
                         ))}
+
                         {isTyping && (
                             <div className="text-left mb-4">
                                 <div className="inline-block p-2 rounded-lg bg-gray-300 text-black">
-                                    AI助手正在輸入...
+                                    AI助手正在思考中...
                                 </div>
                             </div>
                         )}
                         <div ref={messagesEndRef} />
                     </div>
-                    <form onSubmit={handleSubmit} className="p-2 sm:p-4 border-t bg-white">
-                        <div className="flex items-center">
-                            <input
-                                type="text"
-                                value={message}
-                                onChange={(e) => setMessage(e.target.value)}
-                                placeholder="輸入訊息..."
-                                className="flex-grow p-2 border rounded bg-white text-black"
-                            />
-                            <button
-                                type="submit"
-                                className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded ml-2"
-                            >
-                                發送
-                            </button>
-                        </div>
-                    </form>
                 </div>
-            )}
+
+                <form onSubmit={handleSubmit} className="rounded-b-lg p-2 sm:p-4 h-fit bg-gray-100">
+                    <div className="flex flex-wrap space-y-2 md:space-y-0 justify-end md:justify-center items-center h-fit">
+                        <input
+                            type="text"
+                            value={message}
+                            onChange={(e) => setMessage(e.target.value)}
+                            placeholder="輸入訊息..."
+                            className="flex-grow p-2 text-lg border rounded bg-white text-black font-semibold w-full md:w-auto"
+                        />
+                        <button
+                            onMouseDown={startRecording}
+                            className={`
+                                rounded-full flex items-center ml-2 border border-transparent
+                                text-center text-sm transition-all  hover:bg-blue-200
+                                ${isActive ? 'text-white bg-red-500' : 'text-zinc-400 bg-zinc-900'} 
+                            `}
+                            type="button"
+                        >
+                            <MdKeyboardVoice className="h-10 w-10" />
+                        </button>
+                        <button
+                            type="submit"
+                            className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded ml-2"
+                        >
+                            發送
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     );
 };

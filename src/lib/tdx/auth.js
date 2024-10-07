@@ -23,7 +23,8 @@ export default async function GetToken(id, secret, test = false) {
     var Response = {
         AccessToken: null,
         Expires_ms: 0, // 過期日毫秒
-        Error: null
+        Error: null,
+        status_code: []
     }
 
     const cookieStore = cookies()
@@ -87,10 +88,11 @@ export default async function GetToken(id, secret, test = false) {
             },
             //cache: 'no-cache', //'force-dynamic', //停止快取
             body: requestBody
-        }).then(async (res) => {
+        }).then((res) => {
             const data = res.json();
+            Response.status_code.push(res.status)
             return data
-        }).then(async (data) => {
+        }).then((data) => {
             if (data.error) {
                 let err_msg = ""
                 if (data.error === 'unauthorized_client') {

@@ -26,7 +26,7 @@ export default async function Fetch_Data({ AccessToken = '', Token_Expires = 0, 
     var fetch_data = []
     var fetch_error = []
     var fetch_error_format = []
-    var fetch_exception_error = null
+    var fetch_exception_error = []
     var fetch_OK = false
 
     // 檢查是否成功取得Token
@@ -99,21 +99,20 @@ export default async function Fetch_Data({ AccessToken = '', Token_Expires = 0, 
                 })
             );
         } catch (e) {
-            fetch_exception_error = e.message;
-            console.error('[fetch_TDX]意外錯誤: ', e.message)
+            fetch_exception_error.push(e.message);
+            console.error(`[fetch_TDX]意外錯誤: ${fetch_exception_error}`)
         }
     } else {
-        fetch_exception_error = 'AccessToken未取得或無效，請查看後台詳細錯誤訊息'
+        fetch_status_code = [401]
+        fetch_exception_error.push('AccessToken未取得或無效')
         console.error(`[fetch_TDX]Error: ${fetch_exception_error}`)
     }
 
     // 檢查網路是否中斷
-    if (!fetch_exception_error) {
-        Object.entries(fetch_error).forEach(([key, value], index) => {
-            if (value?.cause?.errno == "-3008") {
-                fetch_exception_error = "網路連線已中斷，請確認你的網路已正確連接!"
-            }
-        })
+    const fetch_check = await fetch('https://www.google.com/').then(res => res).catch(err => err)
+    if (fetch_check?.cause?.errno == "-3008") {
+        fetch_status_code = [-3008]
+        fetch_exception_error = "網路連線已中斷，請確認你的網路已正確連接!"
     }
 
     // 顯示請求資訊
@@ -141,24 +140,25 @@ export default async function Fetch_Data({ AccessToken = '', Token_Expires = 0, 
         Token_Expires (Token剩餘時間、到期時間):  ${(Token_Expires > 0) ? Token_Expires_format_time() :
                 (Token_Expires == 0) ? "Access Token無效" : "使用自訂的Access Token，無有效期限資訊"}
         -------------------------
-        請求狀態碼: ${(fetch_status_code.length > 0) ? fetch_status_code : '無'}
+        請求狀態碼: ${(fetch_status_code.length > 0) ? JSON.stringify(fetch_status_code, null, 2) : '無'}
         請求回應原始訊息: ${fetch_status_code.every((code) => code != 200) ? JSON.stringify(fetch_data, null, 2) : "無"}
         請求回應原始錯誤訊息: ${JSON.stringify(fetch_error, null, 4)}
         請求回應原始格式化錯誤訊息: ${JSON.stringify(fetch_error_format, null, 2)}
-        意外錯誤訊息: ${fetch_exception_error || '無'}
+        意外錯誤訊息: ${JSON.stringify(fetch_exception_error, null, 2) || '無'}
         ===================================
         `.replaceAll(' ', '')
         console.log(fetch_response)
     }
 
-    // 檢查完全成功取得資料
-    if ((fetch_status_code.length > 0) && (fetch_status_code.every((code) => code && (code == 200)))) {
+    // 檢查是否完全請求成功
+    if (
+        (fetch_status_code.length > 0) &&
+        (fetch_status_code.every((code) => code && (code == 200))) &&
+        (fetch_error.length == 0) &&
+        (fetch_error_format.length == 0) &&
+        (fetch_exception_error.length == 0)
+    ) {
         fetch_OK = true
-    }
-
-    // 當Access Token過期
-    if (Token_Expires == 0) {
-        fetch_OK = false
     }
 
     Fetch_Data_Info = { fetch_OK, fetch_status_code, fetch_data, fetch_error, fetch_error_format, fetch_exception_error }

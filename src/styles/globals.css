@@ -1,3 +1,8 @@
+@font-face {
+    font-family: "Naikai";
+    src: url("../../public/fonts/NaikaiFont-SemiBold.ttf");
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

@@ -173,6 +173,7 @@ const LocationAggregatorMap = ({ off, useExistToken }) => {
                 getTooltip={getTooltip}
                 style={{ width: '100%', height: '100%', fontWeight: 'bold', fontSize: '16px' }}
                 onClick={onClick}
+                touchAction='unset'
             >
                 {/* 以MapBox地圖為基底 */}
                 <Map
@@ -190,7 +191,7 @@ const LocationAggregatorMap = ({ off, useExistToken }) => {
                 </Map>
             </DeckGL>
             {/* 搜尋輸入框 */}
-            <div className='fixed top-32 sm:top-28 md:top-26 lg:top-20 flex flex-col md:flex-row flex-wrap md:flex-nowrap flex-auto justify-end items-end md:items-center right-1 z-[9999] w-auto sm:max-w-lg md:max-w-md lg:max-w-md'>
+            <div className='fixed right-2 mt-2 flex flex-col md:flex-row flex-wrap md:flex-nowrap flex-auto justify-end items-end md:items-center right-1 w-auto sm:max-w-lg md:max-w-md lg:max-w-md'>
                 {
                     <div className={`relative md:mr-2 mt-2`}>
                         <FloatingLabel variant="filled" label="搜尋路段..." sizing="md" value={search} onChange={e => setSearch(e.target.value)}
@@ -198,7 +199,7 @@ const LocationAggregatorMap = ({ off, useExistToken }) => {
                         />
                     </div>
                 }
-                {<Button type="button" color="cyan" className="flex order-first md:order-none font-bold items-center border-[2px] border-gray-800 h-fit w-fit" onClick={() => setSearchSection(!searchSection)}>
+                {<Button type="button" color="cyan" className="flex select-none order-first md:order-none font-bold items-center border-[2px] border-gray-800 h-fit w-fit z-[9998]" onClick={() => setSearchSection(!searchSection)}>
                     <div className="flex flex-col justify-center items-center p-0 m-0" >
                         <TbMapSearch className='h-5 w-5' />
                         <span className="hidden sm:block"> 搜尋路段 </span>
@@ -207,7 +208,7 @@ const LocationAggregatorMap = ({ off, useExistToken }) => {
             </div>
             {
                 // 壅塞資訊側邊欄
-                showDrawer && <Info_Component
+                <Info_Component
                     coordinate={coordinate}
                     color={color}
                     describe={describe}

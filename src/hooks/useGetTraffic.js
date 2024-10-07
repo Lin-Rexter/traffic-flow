@@ -2,11 +2,13 @@
 import { useContext, useState, useEffect } from "react";
 import useSWR, { mutate } from 'swr'
 
+
 const clearCache = () => mutate(
     () => true,
     undefined,
     { revalidate: false }
 )
+clearCache()
 
 // TDX資料取得API中控模組
 export const useGetTraffic = (disabled = false, useExistToken = true, time = []) => {
@@ -60,22 +62,71 @@ export const useGetTraffic = (disabled = false, useExistToken = true, time = [])
     return [details, code]
     */
 
-    const [IsAPIRateLimit, setIsAPIRateLimit] = useState(false);
+    const [IsTokenError, setIsTokenError] = useState(false) // code: 401、400 [層級: Error] [可否給使用者得知: 否]
+    const [IsAPIRateLimit, setIsAPIRateLimit] = useState(false); // code: 429 [層級: Warn] [可否給使用者得知: 是]
+    const [IsDisconnect, setIsDisconnect] = useState(false); // code: -3008 [層級: Error] [可否給使用者得知: 是]
 
-    const fetcher = async url => {
+    var fetch_error_reply = '非常抱歉，目前無法取得資料，請再次重整網頁，如未改善請聯絡網站管理員!' // 當非 IsDisconnect 或 IsAPIRateLimit 狀況時，給使用者的警告訊息。
+
+    
+    const fetcher = async (url) => {
         const res = await fetch(url)
-        const response = await res.json()
+        const res_data = await res.json()
 
-        if (res.ok && response?.error) {
+        const res_ok = res.ok
+        const res_status = res.status
+
+        const res_error = res_data?.error
+        const res_error_msgs = res_error?.error
+        const res_error_status = res_error?.status
+
+        if (res_ok && !res_error){
+            return res_data
+        }
+
+        var error = {}
+        error.info = fetch_error_reply
+        error.status = res_status ?? []
+
+        if (res_error_status.some((status) => status == 429)) {
+            setIsAPIRateLimit(true)
+            error.info = "[系統繁忙]\n目前為舊資料，正在努力取得最新資料中🤯，請稍後..."
+            console.warn(error.info)
+            throw error
+        } else {
             setIsAPIRateLimit(false)
         }
 
-        if (!res.ok || response.error) {
+        if (res_error_status.some((status) => (status == 400) || (status == 401))) {
+            setIsTokenError(true)
+            throw error
+        } else {
+            setIsTokenError(false)
+        }
+
+        if (res_error_status.some((status) => status == -3008)) {
+            setIsDisconnect(true)
+            error.info = res_error_msgs
+            throw error
+        } else {
+            setIsDisconnect(false)
+        }
+
+        if (!res_ok || res_error) {
+            throw error
+        }
+
+        /*
+        if (res.ok && res_data?.error) {
+            setIsAPIRateLimit(false)
+        }
+
+        if (!res.ok || res_data?.error) {
             let error = new Error()
-            error.info = response?.error
+            error.info = res_data?.error
             error.status = res.status
 
-            if (error?.info?.status?.includes(429)) {
+            if (res_data?.error?.status?.includes(429)) {
                 error.info = null
                 setIsAPIRateLimit(true)
             } else {
@@ -84,8 +135,7 @@ export const useGetTraffic = (disabled = false, useExistToken = true, time = [])
 
             throw error
         }
-
-        return response 
+        */
     }
 
     //clearCache()
@@ -119,12 +169,17 @@ export const useGetTraffic = (disabled = false, useExistToken = true, time = [])
             }
         })
 
-        if (!IsAPIRateLimit) {
-            warn = null
-        } else {
+        if (IsAPIRateLimit) {
+            warn = error
             error = null
-            //warn = "[系統繁忙]\n目前為舊資料，正在努力取得最新資料中🤯，請稍後..."
-            console.warn("[系統繁忙]\n目前為舊資料，正在努力取得最新資料中🤯，請稍後...")
+        }
+
+        if (IsTokenError) {
+            warn = null
+        }
+
+        if (IsDisconnect) {
+            warn = null
         }
 
         return [data, error, warn]

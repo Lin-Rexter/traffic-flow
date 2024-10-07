@@ -125,8 +125,8 @@ export async function Get_TDX_Live({ useExistToken = true }) {
         } else {
             Return_Result.error = {
                 //data: Fetch_Info.fetch_data,
-                //error: Fetch_Info.fetch_exception_error, //|| Fetch_Info.fetch_error_format,
-                status: Fetch_Info.fetch_status_code
+                error: Fetch_Info.fetch_exception_error || Fetch_Info.fetch_error_format, // || Fetch_Info.fetch_exception_error,
+                status: Fetch_Info.fetch_status_code || AccessToken_info.status_code
             }
             return Return_Result
         }

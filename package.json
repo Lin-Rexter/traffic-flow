@@ -25,6 +25,7 @@
     "kepler.gl": "^3.0.0",
     "mapbox-gl": "^3.6.0",
     "maplibre-gl": "^4.7.1",
+    "marked": "^14.1.2",
     "next": "14.2.5",
     "next-themes": "^0.3.0",
     "nextjs-toploader": "^1.6.12",

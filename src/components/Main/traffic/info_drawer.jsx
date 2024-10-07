@@ -1,5 +1,5 @@
 "use client";
-import { Button, Drawer } from "flowbite-react";
+import { Button, Drawer, Carousel } from "flowbite-react";
 import { useState } from "react";
 import { PiTrafficSignBold } from "react-icons/pi";
 import Link from 'next/link';
@@ -8,10 +8,10 @@ import { useDrawer } from "@/context";
 
 export const Info_Component = ({ coordinate, color, describe, id, name, travel_speed, travel_time, update_interval, update_time }) => {
     const { showDrawer, setShowDrawer } = useDrawer();
-    const [isOpen, setIsOpen] = useState(true);
+    //const [isOpen, setIsOpen] = useState(showDrawer);
 
     const handleClose = () => {
-        setIsOpen(false)
+        //setIsOpen(false)
         setShowDrawer(false)
     };
 
@@ -21,26 +21,40 @@ export const Info_Component = ({ coordinate, color, describe, id, name, travel_s
     //console.log(`https://maps.google.com/maps?ll=${coordinate.join(",")}&t=&z=20&ie=UTF8&iwloc=B&output=embed`)
 
     return (
-        <Drawer open={isOpen} onClose={handleClose} position="bottom" className="fixed z-[99999] w-[80vw] md:w-[50vw] lg:w-[40vw] top-[8vh] bottom-[7vh] md:top-[67px] md:bottom-[54px] scroll-y py-0 my-2 transition-transform ease-in-out duration-200">
-            <div className="flex h-full w-full justify-center flex-col pt-14">
-                <div className="google-map-code flex mx-0 mb-4 justify-center">
-                    <iframe
-                        src={`https://maps.google.com/maps?ll=${coordinate.join(",")}&t=&z=20&ie=UTF8&iwloc=B&output=embed`} // 文字查詢: q=${name}
-                        width="100%"
-                        height="300"
-                        style={{ border: 0 }}
-                        allowFullScreen={true}
-                        aria-hidden={false}
-                        tabIndex="0"
-                        loading="lazy"
-                    />
+        <Drawer open={showDrawer} onClose={handleClose} position="bottom" className={`fixed border-t-2 border-b-2 border-r-2 border-l-0 border-gray-600 rounded-r-xl z-[99999] top-[8vh] bottom-[7vh] md:top-[67px] md:bottom-[54px] scroll-y py-0 my-2 ${showDrawer ? "w-[90vw] md:w-[50vw] lg:w-[40vw] opacity-100" : "w-[0px] opacity-0"} transition-transform ease-in-out duration-200`}>
+            <div className={`flex justify-center flex-col pt-14 ${showDrawer ? 'w-full h-full' : 'w-0 h-0'}`}>
+                <div className="google-map-code flex mx-0 mb-4 justify-center h-full p-auto">
+                    <Carousel slide={false} indicators={false} className="h-[25vh]">
+                        <iframe
+                            src={`https://maps.google.com/maps?ll=${coordinate.join(",")}&t=&z=20&ie=UTF8&iwloc=B&output=embed`} // 文字查詢: q=${name}
+                            width="100%"
+                            height="300"
+                            style={{ border: 0 }}
+                            allowFullScreen={true}
+                            aria-hidden={false}
+                            tabIndex="0"
+                            loading="lazy"
+                            className="h-full z-[99999]"
+                        />
+                        <iframe
+                            src={`https://maps.google.com/maps?ll=${coordinate.join(",")}&t=&z=20&ie=UTF8&iwloc=B&output=embed`} // 文字查詢: q=${name}
+                            width="100%"
+                            height="300"
+                            style={{ border: 0 }}
+                            allowFullScreen={true}
+                            aria-hidden={false}
+                            tabIndex="0"
+                            loading="lazy"
+                            className="h-full z-[99999]"
+                        />
+                    </Carousel>
                 </div>
                 <div className="grid grid-cols-1 gap-4 mb-6 md:grid-cols-2">
                     <Link
                         href="#"
-                        className="rounded-lg border border-gray-200 bg-white px-4 py-2 text-center text-md font-medium text-gray-900 hover:bg-gray-100 hover:text-cyan-700 focus:z-10 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:ring-gray-700"
+                        className="rounded-lg border border-gray-200 bg-white px-4 py-2 text-center text-md font-bold text-gray-900 hover:bg-gray-100 hover:text-cyan-700 focus:z-10 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:ring-gray-700"
                     >
-                        Learn more
+                        CCTV
                     </Link>
                     <Link
                         href={`https://maps.google.com/maps?ll=${coordinate.join(",")}&t=&z=20&ie=UTF8&iwloc=B`}

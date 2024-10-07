@@ -10,7 +10,6 @@ import NextTopLoader from 'nextjs-toploader';
 import { Providers } from './providers'
 import Loading from "./loading";
 
-
 const DynamicHeader = dynamic(
     () => import('@/components/Header'),
     {

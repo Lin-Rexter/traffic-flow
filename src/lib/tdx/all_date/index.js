@@ -54,9 +54,12 @@ export const GetTDXDate = () => {
                 Live_Forecast_Data.data.forEach((item) => {
                     let item_date = new Date(item.update_time)
                     if (Forecast_temp_date.length === 0 ||
-                        !Forecast_temp_date.some((row) =>
-                            row.getDate() === item_date.getDate() &&
-                            row.getHours() === item_date.getHours()
+                        (
+                            ([6, 9, 12, 15, 18, 21].includes(item_date.getHours())) &&
+                            !Forecast_temp_date.some((row) =>
+                                row.getDate() === item_date.getDate() &&
+                                row.getHours() === item_date.getHours()
+                            )
                         )) {
                         Forecast_temp_date.push(item_date.addHours(0)) //.toISOString()
                     }

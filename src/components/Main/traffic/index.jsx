@@ -90,12 +90,12 @@ const HomePage = () => {
                     </Suspense>
 
                     {/* 時間軸 */}
-                    <div className="fixed bottom-28 left-8 w-full">
+                    <div className="fixed bottom-28 md:left-8 w-full md:w-2/3 md:max-w-2xl px-6 md:mx-0">
                         {<DynamicTimeline /> || <Skeleton count={5} />}
                     </div>
 
                     {/* AI助手 */}
-                    <div className="fixed bottom-20 right-4 w-auto">
+                    <div className="fixed bottom-[135px] md:bottom-24 right-4 w-auto">
                         {<DynamicChatBubble /> || <Skeleton count={5} />}
                     </div>
                 </div>

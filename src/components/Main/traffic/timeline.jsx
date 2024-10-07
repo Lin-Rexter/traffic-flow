@@ -15,6 +15,7 @@ import { FaHistory, FaFireAlt } from "react-icons/fa";;
 import { useTime } from "@/context";
 import { GetTDXDate } from '@/lib/tdx/all_date'
 import { DiffDays } from '@/lib/utils'
+import { Toast_Component } from "@/components/utils/toast";
 
 
 
@@ -45,6 +46,8 @@ const Timeline = () => {
     const [isShowFuture, setIsShowFuture] = useState(false);
     const [isShowHistory, setIsShowHistory] = useState(false);
     const [isShowRealtime, setIsShowRealtime] = useState(false);
+
+    const [message, setMessage] = useState(null);
 
     const [isDragging, setIsDragging] = useState(false);
     const timelineRef = useRef(null);
@@ -89,7 +92,6 @@ const Timeline = () => {
 
     // 新增時間軸刻度
     var dayNames = ["日", "一", "二", "三", "四", "五", "六"]
-
     var [Forecast_Date_list, Hx_Date_list] = GetTDXDate()?.data;
     if ((Forecast_Date_list?.length > 0) && (Hx_Date_list?.length > 0)) {
         // 排序時間
@@ -181,10 +183,12 @@ const Timeline = () => {
             "六": 6,
             "日": 7
         }
-        let selectedDay = dayToNumber[e.target.innerText.slice(2)]
+        let selectedDay = dayToNumber[e.target.innerText?.slice(2)]
+
+        let newTimeMakers = timeMarkers.filter((item) => ((new Date(item.dates).getDay() === selectedDay) && (item.value < 0)))
 
         setFilterTimeList(
-            timeMarkers.filter((item) => new Date(item.dates).getDay() === selectedDay)
+            newTimeMakers
         )
     };
 
@@ -214,29 +218,57 @@ const Timeline = () => {
         // 初始化filterTimeList
         setFilterTimeList([])
 
+        setMessage(null)
+
         setIsShowFuture(!isShowFuture);
-        setFilterTimeList(timeMarkers.filter((item) => item.value > 0))
-        setSelectedIndex(0);
+
+        const new_timeMakers = timeMarkers.filter((item) => item.value > 0)
+
+        if (new_timeMakers.length > 0) {
+            setFilterTimeList(new_timeMakers)
+            setSelectedIndex(0);
+        } else {
+            setMessage("暫時無未來之預測資料")
+        }
     }
 
 
     var day_icon = [
-        <TbSquareRoundedNumber1Filled className="h-5 w-5" color="dark" />,
-        <TbSquareRoundedNumber2Filled className="h-5 w-5" color="dark" />,
-        <TbSquareRoundedNumber3Filled className="h-5 w-5" color="dark" />,
-        <TbSquareRoundedNumber4Filled className="h-5 w-5" color="dark" />,
-        <TbSquareRoundedNumber5Filled className="h-5 w-5" color="dark" />,
-        <TbSquareRoundedNumber6Filled className="h-5 w-5" color="dark" />,
-        <TbSquareRoundedNumber7Filled className="h-5 w-5" color="dark" />
+        <TbSquareRoundedNumber1Filled key="1" className="h-5 w-5" color="dark" />,
+        <TbSquareRoundedNumber2Filled key="2" className="h-5 w-5" color="dark" />,
+        <TbSquareRoundedNumber3Filled key="3" className="h-5 w-5" color="dark" />,
+        <TbSquareRoundedNumber4Filled key="4" className="h-5 w-5" color="dark" />,
+        <TbSquareRoundedNumber5Filled key="5" className="h-5 w-5" color="dark" />,
+        <TbSquareRoundedNumber6Filled key="6" className="h-5 w-5" color="dark" />,
+        <TbSquareRoundedNumber7Filled key="7" className="h-5 w-5" color="dark" />
     ]
 
     if (filterTimeList?.length > 0) {
-        console.log(filterTimeList)
         timeMarkers = filterTimeList
+        //console.log(timeMarkers)
     }
+
+    var temp_time = []
+    const timeMarkers_filter = (marker, index) => {
+        // 篩選出不同天時間
+        /*
+        if (marker.value == 0) {
+            return "現在"
+        }
+        */
+
+        temp_time = Array.from(new Set(temp_time))
+
+        let marker_day = new Date(marker.dates).toLocaleDateString()
+        temp_time.push(marker_day)
+        if (index % (Math.floor(timeMarkers.length * 0.2)) == 0) {
+            return new Date(marker.dates).toLocaleDateString('zh-TW')
+        }
+    }
+
     return (((Forecast_Date_list?.length > 0) && (Hx_Date_list?.length > 0)) && (
-        <div className="w-2/3 max-w-2xl">
-            <div className="relative rounded-full mb-2">
+        <div className="w-full">
+            <div className="relative rounded-full mb-2 select-none">
                 <form className="grid w-fit">
                     {//isShowHistory &&
                         (<div className={`grid bg-gray-300 border-[2px] border-gray-100 grid-cols-auto sm:grid-cols-7 mb-2 rounded-lg gap-1 w-max ${isShowHistory ? 'opacity-100' : 'opacity-0'} transition-all ease-in-out duration-200`}>
@@ -281,15 +313,15 @@ const Timeline = () => {
                 ref={timelineRef}
                 onMouseDown={handleMouseDown}>
                 {/* 藍色進度條 */}
-                <div className="absolute top-0 left-0 h-full bg-blue-500 rounded-full"
+                <div className="absolute top-0 left-0 h-full bg-blue-500 rounded-full select-none"
                     style={{ width: `${(selectedIndex / (timeMarkers.length - 1)) * 100}%` }} />
 
                 {/* 時間標記 */}
                 {timeMarkers.map((marker, index) => (
                     <div key={index}
-                        className="absolute top-7 transform -translate-x-1/2 text-xs text-white"
+                        className="absolute top-7 transform -translate-x-1/2 text-xs text-white select-none"
                         style={{ left: `${(index / (timeMarkers.length - 1)) * 100}%`, whiteSpace: 'nowrap' }}>
-                        {((marker.value % 24 == 0) && (index % 5 == 0)) && marker.label}
+                        {timeMarkers_filter(marker, index)}
                     </div>
                 ))}
 
@@ -297,19 +329,28 @@ const Timeline = () => {
                 <Popover
                     content={
                         Content(
-                            timeMarkers[selectedIndex].label,
-                            (timeMarkers[selectedIndex].date || new Date().toLocaleString('zh-Hant-TW') + ' ' + `(禮拜${dayNames[new Date().getDay()]})`)
+                            timeMarkers[selectedIndex]?.label,
+                            (timeMarkers[selectedIndex]?.date || new Date().toLocaleString('zh-Hant-TW') + ' ' + `(禮拜${dayNames[new Date().getDay()]})`)
                         )
                     }
                     trigger="hover"
                     placement="top"
                 >
                     <div
-                        className="absolute top-[-5] w-7 h-7 bg-white rounded-full"
+                        className="absolute top-[-5] w-7 h-7 bg-white rounded-full select-none"
                         style={{ left: `calc(${(selectedIndex / (timeMarkers.length - 1)) * 100}% - 2%)` }}
                     />
                 </Popover>
             </div>
+            {
+                (message !== null) &&
+                <Toast_Component
+                    icon_text={"系統訊息"}
+                    title={"系統訊息"}
+                    contents={message}
+                    durations={1000}
+                />
+            }
         </div>
     ))
 };
