@@ -3,7 +3,8 @@ import { useState, useEffect, useRef } from 'react';
 import { FaSmile, FaSearch, FaPaperclip } from 'react-icons/fa';
 import { IoMdClose } from "react-icons/io";
 import { MdKeyboardVoice } from "react-icons/md";
-import { gemini_ask } from '@/app/api/ai/gemini'
+//import { gemini_ask } from '@/lib/ai/gemini'
+import { langchain_ask } from '@/lib/ai/langchain';
 import { Effect } from 'deck.gl';
 import { marked } from 'marked';
 
@@ -86,7 +87,8 @@ const ChatBubble = () => {
                 if (message) {
                     setMessage('');
 
-                    let result = await gemini_ask(message)
+                    //let result = await gemini_ask(message)
+                    let result = await langchain_ask(message)
 
                     if (result?.error) {
                         result.data = result?.error || '[系統錯誤] 次數過於頻繁，請稍後再次與AI互動!'
@@ -193,9 +195,9 @@ const ChatBubble = () => {
             {isOpen &&
                 (<div className='z-[10000] fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full h-full backdrop-blur-sm bg-white/5'></div>)
             }
-            <div className={`z-[99999] fixed flex flex-col rounded-lg shadow-xl py-6 w-[90vw] sm:w-[400px] md:w-[420px] lg:w-[500px] max-w-[600px] top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 ${isOpen ? 'opacity-100 h-[75vh] visible' : 'opacity-0 h-[0vh] invisible'} transition-all ease-in-out duration-300`}>
+            <div className={`z-[99999] fixed flex flex-col rounded-lg py-6 w-[90vw] sm:w-[400px] md:w-[420px] lg:w-[500px] max-w-[600px] top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 ${isOpen ? 'opacity-100 h-[75vh] visible' : 'opacity-0 h-[0vh] invisible'} transition-all ease-in-out duration-300`}>
                 <div className="bg-teal-500 h-fit text-white p-2 sm:p-4 rounded-t-lg flex justify-between items-center">
-                    <h3 className="font-bold text-sm sm:text-base flex justify-center items-center">AI助手</h3>
+                    <p className="font-bold text-sm sm:text-lg flex justify-center items-center">AI助手</p>
                     <div className='flex justify-center items-center'>
                         <button onClick={toggleSearch} className="mr-2 p-1 rounded-md hover:bg-blue-600">
                             <FaSearch className="h-4 w-4" />
@@ -223,8 +225,8 @@ const ChatBubble = () => {
                         {filteredMessages.map((group, groupIndex) => (
                             <div key={groupIndex} className={`mb-4 ${group.sender === 'user' ? 'text-right' : 'text-left'}`}>
                                 {group.messages.map((msg, msgIndex) => (
-                                    <div key={msg.id} className="mb-1 font-Naikai">
-                                        <div className={`inline-block font-semibold px-2 py-1 rounded-lg ${group.sender === 'user' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-black'}`}>
+                                    <div key={msg.id} className="mb-1 font-Naikai text-base">
+                                        <div className={`inline-block px-2 py-1 rounded-lg ${group.sender === 'user' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-black'}`}>
                                             <div className='max-w-sm flex flex-wrap flex-auto text-ellipsis overflow-hidden' dangerouslySetInnerHTML={{ __html: marked.parse(msg.text) }}></div>
                                             {/*
                                         <div className="text-right">
@@ -245,7 +247,7 @@ const ChatBubble = () => {
                                         */}
                                         </div>
                                         {msgIndex === (group.messages.length - 1) && (
-                                            <p className="text-sm mt-1 opacity-80 font-semibold">
+                                            <p className="text-sm mt-1 opacity-80">
                                                 {new Date(msg.time).toLocaleTimeString()}
                                             </p>
                                         )}
@@ -272,7 +274,7 @@ const ChatBubble = () => {
                             value={message}
                             onChange={(e) => setMessage(e.target.value)}
                             placeholder="輸入訊息..."
-                            className="flex-grow p-2 text-lg border rounded bg-white text-black font-semibold w-full md:w-auto"
+                            className="flex-grow p-2 text-lg border rounded bg-white text-black font-Naikai text-base w-full md:w-auto"
                         />
                         <button
                             onMouseDown={startRecording}

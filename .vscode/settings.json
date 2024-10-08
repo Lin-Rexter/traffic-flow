@@ -13,5 +13,8 @@
   "editor.unicodeHighlight.ambiguousCharacters": true,
   "cSpell.words": [
     "Supabase"
-  ]
+  ],
+  "[typescript]": {
+    "editor.defaultFormatter": "vscode.typescript-language-features"
+  }
 }
