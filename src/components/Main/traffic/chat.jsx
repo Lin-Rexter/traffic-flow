@@ -1,6 +1,7 @@
 "use client"
 import { useState, useEffect, useRef } from 'react';
 import { FaSmile, FaSearch, FaPaperclip } from 'react-icons/fa';
+import { Button, Popover } from "flowbite-react";
 import { IoMdClose } from "react-icons/io";
 import { MdKeyboardVoice } from "react-icons/md";
 //import { gemini_ask } from '@/lib/ai/gemini'
@@ -22,7 +23,7 @@ const ChatBubble = () => {
     const [geminiMsg, setGeminiMsg] = useState('');
 
     // 語音設置
-    const [recognition, setRecognition] = useState(null);
+    const [recognition_T, setRecognition] = useState(null);
     const [isActive, setIsActive] = useState(false);
     const language = 'zh-TW';
 
@@ -37,36 +38,48 @@ const ChatBubble = () => {
 
     // 語音處理 - 錄音開始
     const startRecording = () => {
+        // 停止錄音 (初始化)
+        if (isActive) {
+            stopRecording();
+            return
+        }
+
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         const recognition = new SpeechRecognition();
 
-        recognition.lang = language;
-        recognition.onresult = async function (event) {
-            console.log(event)
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        //recognition.lang = language;
+
+        recognition.onresult = async (event) => {
             const transcript = event.results[0][0].transcript;
             setMessage(transcript);
         }
 
-        setRecognition(recognition)
-        recognition.start();
+        recognition.onspeechend = () => {
+            return null;
+        };
 
+        recognition.start();
+        setRecognition(recognition)
         setIsActive(true)
     }
 
     // 語音處理 - 錄音結束
     const stopRecording = () => {
-        if (isActive) {
-            recognition.stop();
-            setIsActive(false);
-        }
+        recognition_T.stop();
+        setRecognition(recognition_T)
+        setIsActive(false);
     };
 
     const handleSubmit = (e) => {
+        // 停止錄音 (初始化)
+        if (isActive) {
+            stopRecording();
+        }
+
         e.preventDefault();
         if ((message.trim() === '') || isTyping) return;
-
-        // 停止錄音
-        stopRecording();
 
         // 使用者訊息包裝
         const newMessage = {
@@ -220,7 +233,7 @@ const ChatBubble = () => {
                     />
                 </div>
 
-                <div className="flex-1 p-1 sm:p-2 h-full bg-slate-200 dark:bg-neutral-800 transition-all ease-in-out duration-200">
+                <div className="flex-1 p-1 sm:p-2 h-full bg-slate-200 dark:bg-neutral-800 transition-all ease-in-out duration-200 overflow-y-auto">
                     <div className='border-4 border-slate-200 dark:border-neutral-800 bg-slate-200 dark:bg-neutral-800 shadow-[inset_0_0_6px_1px_rgba(100,100,100,0.8)] rounded-xl w-full h-full p-4 m-0 overflow-y-auto'>
                         {filteredMessages.map((group, groupIndex) => (
                             <div key={groupIndex} className={`mb-4 ${group.sender === 'user' ? 'text-right' : 'text-left'}`}>
@@ -284,9 +297,14 @@ const ChatBubble = () => {
                                 ${isActive ? 'text-white bg-red-500' : 'text-zinc-400 bg-zinc-900'} 
                             `}
                             type="button"
+                            data-tooltip-target="tooltip-animation"
                         >
                             <MdKeyboardVoice className="h-10 w-10" />
                         </button>
+                        <div id="tooltip-animation" role="tooltip" className={`absolute z-10 invisible inline-block px-3 py-2 text-md font-bold ${isActive ? 'text-red-400' : 'text-white'} transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700`}>
+                            {isActive ? '結束語音辨識' : '開始語音輸入'}
+                            <div className="tooltip-arrow" data-popper-arrow></div>
+                        </div>
                         <button
                             type="submit"
                             className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded ml-2"

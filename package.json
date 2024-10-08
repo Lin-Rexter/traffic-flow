@@ -12,8 +12,12 @@
     "edge:deploy": "pnpm run edge:build && wasmer deploy"
   },
   "dependencies": {
+    "@clerk/localizations": "^3.2.0",
+    "@clerk/nextjs": "^5.7.1",
     "@google/generative-ai": "^0.16.1",
     "@googlemaps/google-maps-services-js": "^3.4.0",
+    "@huggingface/inference": "^2.8.1",
+    "@langchain/community": "^0.3.4",
     "@langchain/core": "^0.3.7",
     "@langchain/ollama": "^0.1.0",
     "@reduxjs/toolkit": "^2.2.8",

@@ -10,7 +10,7 @@ const Dynamic_Map = dynamic(
 
 export function generateMetadata({ params, searchParams }, parent) {
   // read route params
-  const id = params.id
+  //const id = params.id
 
   return {
     title: "交通流量預測",

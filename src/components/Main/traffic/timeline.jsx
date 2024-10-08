@@ -190,6 +190,8 @@ const Timeline = () => {
         setFilterTimeList(
             newTimeMakers
         )
+
+        setSelectedIndex(0);
     };
 
     // 點擊歷史時間按鈕
@@ -271,7 +273,7 @@ const Timeline = () => {
             <div className="relative rounded-full mb-2 select-none">
                 <form className="grid w-fit">
                     {//isShowHistory &&
-                        (<div className={`grid bg-gray-300 border-[2px] border-gray-100 grid-cols-auto sm:grid-cols-7 mb-2 rounded-lg gap-1 w-max ${isShowHistory ? 'opacity-100' : 'opacity-0'} transition-all ease-in-out duration-200`}>
+                        (<div className={`grid bg-gray-300 border-[2px] border-gray-100 grid-cols-auto sm:grid-cols-7 mb-2 rounded-lg gap-1 w-max ${isShowHistory ? 'opacity-100' : 'opacity-0'} transition-all ease-in-out duration-100`}>
                             {
                                 dayNames.map((day, index) => (
                                     <Button type="button" key={index} color="light" className="flex font-bold items-center border-gray-800 select-none" onClick={getButtonDay}>
@@ -284,23 +286,23 @@ const Timeline = () => {
                             }
                         </div>)
                     }
-                    <Button.Group className="flex justify-start items-center">
+                    <Button.Group className="flex justify-start items-center space-x-3">
                         {/* 歷史時間 */}
-                        <Button type="button" color="cyan" className="flex rounded-full font-bold items-center border-[2px] border-gray-800 mr-1 p-0 select-none" onClick={history_button}>
+                        <Button type="button" color="light" className="flex rounded-full font-bold items-center border-[2px] border-gray-800 p-0 select-none" onClick={history_button}>
                             <div className="flex flex-col justify-center items-center p-0 m-0" >
                                 <FaHistory className="h-5 w-5 sm:mb-2" color="dark" />
                                 <span className="hidden sm:block"> 歷史 </span>
                             </div>
                         </Button>
                         {/* 即時時間 */}
-                        <Button type="button" color="cyan" className="flex rounded-full font-bold items-center border-[2px] border-gray-800 mr-1 p-0 select-none" onClick={realtime_button}>
+                        <Button type="button" color="red" className="flex rounded-full font-bold items-center border-[2px] border-gray-800 p-0 select-none" onClick={realtime_button}>
                             <div className="flex flex-col justify-center items-center p-0 m-0" >
                                 <FaFireAlt className="h-5 w-5 sm:mb-2" color="dark" />
                                 <span className="hidden sm:block"> 即時 </span>
                             </div>
                         </Button>
                         {/* 未來時間 */}
-                        <Button type="button" color="cyan" className="flex rounded-full font-bold items-center border-[2px] border-gray-800 mr-1 p-0 select-none" onClick={future_button}>
+                        <Button type="button" color="cyan" className="flex rounded-full font-bold items-center border-[2px] border-gray-800 p-0 select-none" onClick={future_button}>
                             <div className="flex flex-col justify-center items-center p-0 m-0" >
                                 <SiFuturelearn className="h-5 w-5 sm:mb-2" color="dark" />
                                 <span className="hidden sm:block"> 未來 </span>

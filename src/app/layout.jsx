@@ -9,6 +9,8 @@ import { ThemeProvider } from 'next-themes'
 import NextTopLoader from 'nextjs-toploader';
 import { Providers } from './providers'
 import Loading from "./loading";
+import { ClerkProvider } from '@clerk/nextjs'
+import { zhTW } from '@clerk/localizations'
 
 const DynamicHeader = dynamic(
     () => import('@/components/Header'),
@@ -47,25 +49,26 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
     return (
-        <html lang="zh-Hant-TW" className={myFont.className} suppressHydrationWarning>
-            <head>
-                <link href="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.css" rel="stylesheet" />
-            </head>
-            <body className="h-screen">
-                <Suspense fallback={<Loading />} className={inter.className}>
-                    <Providers>
-                        {/* 載入進度條 */}
-                        <NextTopLoader
-                            color="#2299DD"
-                            initialPosition={0.08}
-                            crawlSpeed={200}
-                            height={7}
-                            crawl={true}
-                            showSpinner={true}
-                            easing="ease"
-                            speed={200}
-                            shadow="0 0 10px #2299DD,0 0 5px #2299DD"
-                            template='
+        <ClerkProvider localization={zhTW}>
+            <html lang="zh-Hant-TW" className={myFont.className} suppressHydrationWarning>
+                <head>
+                    <link href="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.css" rel="stylesheet" />
+                </head>
+                <body className="h-screen">
+                    <Suspense fallback={<Loading />} className={inter.className}>
+                        <Providers>
+                            {/* 載入進度條 */}
+                            <NextTopLoader
+                                color="#2299DD"
+                                initialPosition={0.08}
+                                crawlSpeed={200}
+                                height={7}
+                                crawl={true}
+                                showSpinner={true}
+                                easing="ease"
+                                speed={200}
+                                shadow="0 0 10px #2299DD,0 0 5px #2299DD"
+                                template='
                                     <div class="bar" role="bar">
                                         <div class="peg">
                                     </div>
@@ -73,24 +76,25 @@ export default function RootLayout({ children }) {
                                         <div class="spinner" role="spinner">
                                         <div class="spinner-icon"></div>
                                     </div>'
-                            zIndex={1600}
-                            showAtBottom={false}
-                        />
+                                zIndex={1600}
+                                showAtBottom={false}
+                            />
 
-                        <div className="h-full grid grid-flow-row-dense grid-rows-auto grid-cols-auto">
-                            <DynamicHeader />
+                            <div className="h-full grid grid-flow-row-dense grid-rows-auto grid-cols-auto">
+                                <DynamicHeader />
 
-                            <div className="grid grid-flow-row-dense grid-rows-1 h-full">
-                                <DynamicMain children={children} />
+                                <div className="grid grid-flow-row-dense grid-rows-1 h-full">
+                                    <DynamicMain children={children} />
 
-                                <DynamicFooter />
+                                    <DynamicFooter />
+                                </div>
                             </div>
-                        </div>
-                    </Providers>
-                </Suspense>
-                <script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.js" crossOrigin="anonymous"></script>
-            </body>
-        </html>
+                        </Providers>
+                    </Suspense>
+                    <script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.js" crossOrigin="anonymous"></script>
+                </body>
+            </html>
+        </ClerkProvider>
     );
 }
 

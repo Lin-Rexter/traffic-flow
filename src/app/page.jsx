@@ -6,7 +6,7 @@ export default function Home() {
     return (
         <article className="grid grid-flow-row-dense grid-rows-auto auto-rows-min gap-y-8 h-full items-center justify-center m-auto py-3 px-2">
             <div className="flex flex-wrap z-10 w-full max-w-5xl justify-end md:flex-nowrap md:justify-between items-center text-sm">
-                <p className="flex md:basis-1/2 w-full justify-center items-center py-6 font-bold text-base border-b border-gray-300 bg-gradient-to-b from-zinc-200 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit md:w-auto md:rounded-xl md:border md:bg-gray-200 md:p-4 md:dark:bg-zinc-700/30">
+                <p className="flex md:basis-1/2 w-full mx-6 md:mx-0 justify-center items-center p-4 md:py-6 font-bold text-base border-b border-gray-300 bg-gradient-to-b from-zinc-200 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit md:w-auto rounded-xl border md:bg-gray-200 md:dark:bg-zinc-700/30">
                     點擊下方的交通壅塞預測，與AI互動並探索未來的壅塞狀況吧!!&nbsp;
                 </p>
                 <div className="flex md:basis-1/2 h-auto justify-end bg-gradient-to-t from-white via-white dark:from-black dark:via-black bg-none">
