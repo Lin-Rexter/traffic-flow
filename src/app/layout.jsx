@@ -11,6 +11,7 @@ import { Providers } from './providers'
 import Loading from "./loading";
 import { ClerkProvider } from '@clerk/nextjs'
 import { zhTW } from '@clerk/localizations'
+import 'react-loading-skeleton/dist/skeleton.css'
 
 const DynamicHeader = dynamic(
     () => import('@/components/Header'),

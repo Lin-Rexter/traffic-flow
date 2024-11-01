@@ -5,7 +5,7 @@ import { ChatPromptTemplate, SystemMessagePromptTemplate } from "@langchain/core
 import { Get_TDX_Live } from '@/lib/tdx/live_data'
 
 
-
+// 提示
 const chatPrompt = ChatPromptTemplate.fromMessages([
     ["ai", "你是一位對台灣高速公路非常了解的專家，使用繁體中文回答，會回答使用者所要查詢的路段壅塞資訊及路段名稱等資訊，也會跟使用者聊天，但不要跟使用者胡說以及提及用戶未回答的問題，並且知道以下資訊，: {traffic_info}"],
     ["human", "國道一號是哪個路段?"],
@@ -24,17 +24,18 @@ try {
 }
 */
 
+
 const llm = new ChatOllama({
     model: "llama3.2:3b",
     temperature: 0,
     maxRetries: 3,
-    // other params...
 });
 
 
 const chain = chatPrompt.pipe(llm);
 
-export const langchain_ask = async (ask) => {
+// 暫時
+export const langhain_ask = async (ask) => {
     var response_dict = {
         data: null,
         error: null
@@ -51,7 +52,7 @@ export const langchain_ask = async (ask) => {
         }
 
         const live_data = JSON.stringify(TDX_Live_Result.data.features)
-        console.log(live_data)
+        //console.log(live_data)
 
         const formattedChatPrompt = await chain.invoke({
             user_input: ask,

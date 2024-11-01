@@ -2,19 +2,31 @@
 import { useContext, useState, useEffect } from "react";
 import useSWR, { mutate } from 'swr'
 
-
-const clearCache = () => mutate(
-    () => true,
+/*
+mutate(
+    key => true,
     undefined,
     { revalidate: false }
 )
-clearCache()
+*/
+/*
+const disableCache = (useSWRNext) => {
+    return (key, fetcher, config) => {
+        const swr = useSWRNext(key, fetcher, config);
+        const { data, isValidating } = swr;
+        return Object.assign({}, swr, {
+            data: isValidating ? undefined : data,
+        });
+    };
+};
+*/
 
 // TDX資料取得API中控模組
 export const useGetTraffic = (disabled = false, useExistToken = true, time = []) => {
     if (disabled) {
         return [null, null, null]
     }
+
     /*
     const [details, setDetails] = useState([]);
     const [code, setCode] = useState(0);
@@ -68,7 +80,7 @@ export const useGetTraffic = (disabled = false, useExistToken = true, time = [])
 
     var fetch_error_reply = '非常抱歉，目前無法取得資料，請再次重整網頁，如未改善請聯絡網站管理員!' // 當非 IsDisconnect 或 IsAPIRateLimit 狀況時，給使用者的警告訊息。
 
-    
+
     const fetcher = async (url) => {
         const res = await fetch(url)
         const res_data = await res.json()
@@ -80,7 +92,7 @@ export const useGetTraffic = (disabled = false, useExistToken = true, time = [])
         const res_error_msgs = res_error?.error
         const res_error_status = res_error?.status
 
-        if (res_ok && !res_error){
+        if (res_ok && !res_error) {
             return res_data
         }
 
@@ -158,12 +170,13 @@ export const useGetTraffic = (disabled = false, useExistToken = true, time = [])
         var warn = null
         var { data, error } = useSWR(fetch_url, fetcher, {
             refreshInterval: 60 * 1000,
+            //use: [disableCache], // 禁用快取
             onErrorRetry: (error, key, config, revalidate, { retryCount }) => {
                 if (error.status === 404) {
                     return
                 }
 
-                if (retryCount > 1) return
+                if (retryCount > 2) return
 
                 setTimeout(() => revalidate({ retryCount }), 1000 * 60)
             }

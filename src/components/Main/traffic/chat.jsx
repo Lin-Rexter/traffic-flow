@@ -162,6 +162,7 @@ const ChatBubble = () => {
     };
 
     // 添加表情Reaction
+    /*
     const addReaction = (groupIndex, messageId, reaction) => {
         setMessages(prevMessages => {
             const newMessages = [...prevMessages];
@@ -177,6 +178,7 @@ const ChatBubble = () => {
             return newMessages;
         });
     };
+    */
 
     // 過濾搜尋訊息結果
     function searchMsgFilter() {
@@ -200,15 +202,15 @@ const ChatBubble = () => {
             {!isOpen && (
                 <button
                     onClick={toggleChat}
-                    className="text-stone-100 bg-gradient-to-r from-cyan-500 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-cyan-300 dark:focus:ring-cyan-800 font-bold py-2 px-4 rounded-full shadow-lg select-none"
+                    className="text-stone-100 transition-all transform-gpu ease-in-out duration-300 active:duration-200 bg-gradient-to-r from-cyan-500 to-blue-500 hover:scale-110 active:scale-75 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-cyan-300 dark:focus:ring-cyan-800 font-bold py-2 px-4 rounded-full shadow-lg select-none"
                 >
                     AI助手
                 </button>
             )}
             {isOpen &&
-                (<div className='z-[10000] fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full h-full backdrop-blur-sm bg-white/5'></div>)
+                (<div className='z-[99998] fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full h-full backdrop-blur-sm bg-white/5'></div>)
             }
-            <div className={`z-[99999] fixed flex flex-col rounded-lg py-6 w-[90vw] sm:w-[400px] md:w-[420px] lg:w-[500px] max-w-[600px] top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 ${isOpen ? 'opacity-100 h-[75vh] visible' : 'opacity-0 h-[0vh] invisible'} transition-all ease-in-out duration-300`}>
+            <div className={`z-[99999] fixed flex flex-col rounded-lg py-6 w-[90vw] sm:w-3/4 lg:w-2/4 max-w-[600px] mt-[2vh] top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 ${isOpen ? 'opacity-100 h-[80vh] visible' : 'opacity-0 h-[0vh] invisible'} transition-all ease-in-out duration-300`}>
                 <div className="bg-teal-500 h-fit text-white p-2 sm:p-4 rounded-t-lg flex justify-between items-center">
                     <p className="font-bold text-sm sm:text-lg flex justify-center items-center">AI助手</p>
                     <div className='flex justify-center items-center'>
@@ -287,7 +289,7 @@ const ChatBubble = () => {
                             value={message}
                             onChange={(e) => setMessage(e.target.value)}
                             placeholder="輸入訊息..."
-                            className="flex-grow p-2 text-lg border rounded bg-white text-black font-Naikai text-base w-full md:w-auto"
+                            className="flex-grow p-2 text-lg border rounded bg-white text-black font-Naikai text-base w-full md:w-auto caret-blue-500"
                         />
                         <button
                             onMouseDown={startRecording}

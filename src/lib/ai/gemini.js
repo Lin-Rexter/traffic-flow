@@ -31,7 +31,6 @@ export async function gemini_ask(ask) {
         error: null
     }
 
-    
     try{
         const result = await chatSession.sendMessage(ask);
 
@@ -40,30 +39,6 @@ export async function gemini_ask(ask) {
         console.log(e.message)
         response_dict.error = e.message
     }
-    
-    /*
-
-    // Llama 3.2
-    const response = await fetch(
-        "https://api-inference.huggingface.co/models/meta-llama/Llama-3.1-8B",
-        {
-            headers: {
-                Authorization: "Bearer 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",
-                "Content-Type": "application/json",
-            },
-            method: "POST",
-            body: JSON.stringify({ "inputs": ask }),
-        }
-    );
-
-    const result = await response.json();
-
-    if (result?.error) {
-        response_dict.error = result.error
-    }else{
-        response_dict.data = result
-    }
-*/
 
     return response_dict
 }

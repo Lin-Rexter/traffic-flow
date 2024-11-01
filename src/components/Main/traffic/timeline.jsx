@@ -52,23 +52,6 @@ const Timeline = () => {
     const [isDragging, setIsDragging] = useState(false);
     const timelineRef = useRef(null);
 
-    /* Example:
-    const timeMarkers = [
-        { label: "7天前", value: -7 * 24 },
-        { label: "6天前", value: -6 * 24 },
-        { label: "5天前", value: -5 * 24 },
-        { label: "4天前", value: -4 * 24 },
-        { label: "3天前", value: -3 * 24 },
-        { label: "2天前", value: -2 * 24 },
-        { label: "即時", value: 0 },
-        { label: "1小時", value: 1 },
-        { label: "3小時", value: 3 },
-        { label: "6小時", value: 6 },
-        { label: "12小時", value: 12 },
-        { label: "1天", value: 24 },
-    ];
-    */
-
     // 時間刻度
     var timeMarkers = [
         { label: "即時", value: 0 }
@@ -95,10 +78,10 @@ const Timeline = () => {
     var [Forecast_Date_list, Hx_Date_list] = GetTDXDate()?.data;
     if ((Forecast_Date_list?.length > 0) && (Hx_Date_list?.length > 0)) {
         // 排序時間
-        let Hx_timeList = Hx_Date_list.sort((a, b) => a.getTime() - b.getTime()).reverse()
-        let forecast_timeList = Forecast_Date_list.sort((a, b) => a.getTime() - b.getTime())
+        let Hx_timeList = Hx_Date_list.sort((a, b) => a.getTime() - b.getTime()).reverse() // 歷史
+        let forecast_timeList = Forecast_Date_list.sort((a, b) => a.getTime() - b.getTime()) // 預測
 
-        // 檢查預測資料是否過期(小於現在時間)
+        // 過濾過期的預測資料
         forecast_timeList = forecast_timeList.filter((item_date) => DiffDays(item_date, new Date()) < 0)
 
         //console.log("長度:", Forecast_Date_list?.length)
@@ -125,6 +108,15 @@ const Timeline = () => {
             }
         })
     }
+
+    // 顯示時間軸更新狀態
+    useEffect(() => {
+        if (timeMarkers.length <= 1) {
+            setMessage("更新時間軸中...")
+        } else {
+            setMessage(null)
+        }
+    }, [timeMarkers])
 
     // 取得時間軸所選擇的時間
     useEffect(() => {
@@ -169,7 +161,7 @@ const Timeline = () => {
         };
     }, [isDragging]);
 
-    // 取得選擇的禮拜幾
+    // 取得選擇的星期幾
     const getButtonDay = (e) => {
         // 初始化filterTimeList
         setFilterTimeList([])
@@ -187,10 +179,7 @@ const Timeline = () => {
 
         let newTimeMakers = timeMarkers.filter((item) => ((new Date(item.dates).getDay() === selectedDay) && (item.value < 0)))
 
-        setFilterTimeList(
-            newTimeMakers
-        )
-
+        setFilterTimeList(newTimeMakers)
         setSelectedIndex(0);
     };
 
@@ -235,6 +224,7 @@ const Timeline = () => {
     }
 
 
+    // 星期一至星期日的圖示
     var day_icon = [
         <TbSquareRoundedNumber1Filled key="1" className="h-5 w-5" color="dark" />,
         <TbSquareRoundedNumber2Filled key="2" className="h-5 w-5" color="dark" />,
@@ -245,6 +235,7 @@ const Timeline = () => {
         <TbSquareRoundedNumber7Filled key="7" className="h-5 w-5" color="dark" />
     ]
 
+    // 如果有篩選時間列表則替換
     if (filterTimeList?.length > 0) {
         timeMarkers = filterTimeList
         //console.log(timeMarkers)
@@ -268,12 +259,12 @@ const Timeline = () => {
         }
     }
 
-    return (((Forecast_Date_list?.length > 0) && (Hx_Date_list?.length > 0)) && (
+    return ((
         <div className="w-full">
             <div className="relative rounded-full mb-2 select-none">
                 <form className="grid w-fit">
                     {//isShowHistory &&
-                        (<div className={`grid bg-gray-300 border-[2px] border-gray-100 grid-cols-auto sm:grid-cols-7 mb-2 rounded-lg gap-1 w-max ${isShowHistory ? 'opacity-100' : 'opacity-0'} transition-all ease-in-out duration-100`}>
+                        (<div className={`grid bg-gray-300 border-[2px] border-gray-100 grid-cols-auto sm:grid-cols-7 mb-2 rounded-lg gap-1 w-max ${isShowHistory ? 'opacity-100' : 'opacity-0 '} transition-all ease-in-out duration-100`}>
                             {
                                 dayNames.map((day, index) => (
                                     <Button type="button" key={index} color="light" className="flex font-bold items-center border-gray-800 select-none" onClick={getButtonDay}>
@@ -286,23 +277,23 @@ const Timeline = () => {
                             }
                         </div>)
                     }
-                    <Button.Group className="flex justify-start items-center space-x-3">
+                    <Button.Group className={`${(timeMarkers.length <= 1) && 'animate-pulse'} flex justify-start items-center space-x-3 w-fit`}>
                         {/* 歷史時間 */}
-                        <Button type="button" color="light" className="flex rounded-full font-bold items-center border-[2px] border-gray-800 p-0 select-none" onClick={history_button}>
+                        <Button type="button" color="light" className={`${(timeMarkers.length <= 1) && 'cursor-no-drop pointer-events-none'} flex rounded-full font-bold items-center border-[2px] border-gray-800 p-0 select-none`} onClick={history_button}>
                             <div className="flex flex-col justify-center items-center p-0 m-0" >
                                 <FaHistory className="h-5 w-5 sm:mb-2" color="dark" />
                                 <span className="hidden sm:block"> 歷史 </span>
                             </div>
                         </Button>
                         {/* 即時時間 */}
-                        <Button type="button" color="red" className="flex rounded-full font-bold items-center border-[2px] border-gray-800 p-0 select-none" onClick={realtime_button}>
+                        <Button type="button" color="red" className={`${(timeMarkers.length <= 1) && 'cursor-no-drop pointer-events-none'} flex rounded-full font-bold items-center border-[2px] border-gray-800 p-0 select-none`} onClick={realtime_button}>
                             <div className="flex flex-col justify-center items-center p-0 m-0" >
                                 <FaFireAlt className="h-5 w-5 sm:mb-2" color="dark" />
                                 <span className="hidden sm:block"> 即時 </span>
                             </div>
                         </Button>
                         {/* 未來時間 */}
-                        <Button type="button" color="cyan" className="flex rounded-full font-bold items-center border-[2px] border-gray-800 p-0 select-none" onClick={future_button}>
+                        <Button type="button" color="cyan" className={`${(timeMarkers.length <= 1) && 'cursor-no-drop pointer-events-none'} flex rounded-full font-bold items-center border-[2px] border-gray-800 p-0 select-none`} onClick={future_button}>
                             <div className="flex flex-col justify-center items-center p-0 m-0" >
                                 <SiFuturelearn className="h-5 w-5 sm:mb-2" color="dark" />
                                 <span className="hidden sm:block"> 未來 </span>
@@ -311,7 +302,7 @@ const Timeline = () => {
                     </Button.Group>
                 </form>
             </div>
-            <div className="relative h-4 bg-blue-200 rounded-full cursor-pointer select-none"
+            <div className={`${(timeMarkers.length <= 1) && 'animate-pulse'} relative h-4 bg-blue-200 rounded-full cursor-pointer select-none`}
                 ref={timelineRef}
                 onMouseDown={handleMouseDown}>
                 {/* 藍色進度條 */}

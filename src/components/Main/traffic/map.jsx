@@ -23,6 +23,11 @@ import { Client } from "@googlemaps/google-maps-services-js";
 
 //client.placeQueryAutocomplete();
 
+Date.prototype.addHours = function (h) {
+    this.setTime(this.getTime() + (h * 60 * 60 * 1000));
+    return this;
+}
+
 // 取得MapBox金鑰
 const mapbox_api_key = process.env.NEXT_PUBLIC_MAPBOX_TOKENS;
 
@@ -68,8 +73,8 @@ const LocationAggregatorMap = ({ off, useExistToken }) => {
         }
     }, [])
 
+    // 取得使用者經緯度 [使用者同意取得位置權限時]
     useEffect(() => {
-        // 取得使用者經緯度 [使用者同意取得位置權限時]
         if ('geolocation' in navigator) {
             navigator.geolocation.getCurrentPosition(({ coords }) => {
                 const { latitude, longitude } = coords;
@@ -101,11 +106,16 @@ const LocationAggregatorMap = ({ off, useExistToken }) => {
     // 更新壅塞緩存資料
     useEffect(() => {
         if (data) {
+            console.log(data.data?.features[0]?.properties?.update_time)
             data = ((Object.keys(data.data).length == 1) || !data.error) ? data.data : null
 
+            // 取得緩存在localStorage的壅塞資料
             const cache_data = window.localStorage.getItem("map_data");
+
             // 當無緩存資料或有最新資料時，儲存至local
-            if ((cache_data === null) || (cache_data !== JSON.stringify(data))) {
+            const cache_data_time = new Date(JSON.parse(cache_data)?.features[0]?.properties?.update_time).addHours(-8)
+            const now_time = new Date().getTime()
+            if ((cache_data === null) || (cache_data !== JSON.stringify(data) || (cache_data_time < now_time))) {
                 const location_time = new Date().toLocaleString('zh-Hant-TW');
                 console.log(`${location_time}: 壅塞資料已更新! (每60秒)`);
 

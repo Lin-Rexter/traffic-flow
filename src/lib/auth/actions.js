@@ -26,7 +26,4 @@ export async function serverAction() {
     if (userRole !== 'admin') {
         throw new Error('Unauthorized access: User does not have admin privileges.')
     }
-
-    // Proceed with the action for authorized users
-    // ... implementation of the action
 }
