@@ -36,7 +36,7 @@
     "mapbox-gl": "^3.7.0",
     "maplibre-gl": "^4.7.1",
     "marked": "^14.1.2",
-    "next": "14.2.5",
+    "next": "14.2.10",
     "next-themes": "^0.3.0",
     "nextjs-toploader": "^1.6.12",
     "react": "18.3.1",
