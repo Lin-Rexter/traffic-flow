@@ -27,7 +27,7 @@ export default async function GetToken(id, secret, test = false) {
         status_code: []
     }
 
-    const cookieStore = cookies()
+    const cookieStore = await cookies()
     var TDX_Access_token = process.env.NEXT_PUBLIC_TDX_ACCESS_TOKEN
 
     if (test) {

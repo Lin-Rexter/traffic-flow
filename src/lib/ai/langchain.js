@@ -35,7 +35,7 @@ const llm = new ChatOllama({
 const chain = chatPrompt.pipe(llm);
 
 // 暫時
-export const langhain_ask = async (ask) => {
+export const langchain_ask = async (ask) => {
     var response_dict = {
         data: null,
         error: null

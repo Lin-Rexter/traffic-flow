@@ -183,7 +183,7 @@ export const useGetTraffic = (disabled = false, useExistToken = true, time = [])
         })
 
         if (IsAPIRateLimit) {
-            warn = error
+            //warn = error
             error = null
         }
 

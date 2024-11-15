@@ -265,7 +265,7 @@ const Timeline = () => {
                 <form className="grid w-fit">
                     {//isShowHistory &&
                         (<div className={`grid bg-gray-300 border-[2px] border-gray-100 grid-cols-auto sm:grid-cols-7 mb-2 rounded-lg gap-1 w-max ${isShowHistory ? 'opacity-100' : 'opacity-0 '} transition-all ease-in-out duration-100`}>
-                            {
+                            {isShowHistory &&
                                 dayNames.map((day, index) => (
                                     <Button type="button" key={index} color="light" className="flex font-bold items-center border-gray-800 select-none" onClick={getButtonDay}>
                                         <div className="flex flex-row justify-between sm:flex-col sm:justify-center items-center" >
@@ -336,12 +336,12 @@ const Timeline = () => {
                 </Popover>
             </div>
             {
-                (message !== null) &&
+                message &&
                 <Toast_Component
                     icon_text={"系統訊息"}
                     title={"系統訊息"}
                     contents={message}
-                    durations={1000}
+                    durations={3000}
                 />
             }
         </div>

@@ -235,7 +235,7 @@ const LocationAggregatorMap = ({ off, useExistToken }) => {
                 <Toast_Component
                     icon_text={"系統訊息"}
                     title={"系統訊息"}
-                    contents={warn}
+                    contents={warn.info}
                 />
             }
             {

@@ -50,7 +50,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
     return (
-        <ClerkProvider localization={zhTW}>
+        <ClerkProvider dynamic localization={zhTW}>
             <html lang="zh-Hant-TW" className={myFont.className} suppressHydrationWarning>
                 <head>
                     <link href="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.css" rel="stylesheet" />

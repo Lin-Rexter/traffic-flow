@@ -73,7 +73,7 @@ const Navbar_Component = () => {
             -
     */
 
-    const router = useRouter()
+    //const router = useRouter()
 
     return (
         <nav className="relative w-full bg-white dark:bg-gray-900 py-4 lg:py-0">

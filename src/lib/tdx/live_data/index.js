@@ -48,6 +48,7 @@ export async function Get_TDX_Live({ useExistToken = true }) {
             SectionShapes.map((item) => {
                 SectionShapes_list.push(item)
             })
+
             // 處理1.的經緯度字串格式
             SectionShapes_list.map((item) => {
                 const temp_geometry_list = []
@@ -60,6 +61,7 @@ export async function Get_TDX_Live({ useExistToken = true }) {
                 item.Geometry = temp_geometry_list
             })
             //console.log(SectionShapes_list)
+            
 
             // 2. 儲存各個路段ID的壅塞程度、更新時間、更新頻率、旅行時間、旅行速度
             const Live_Congestion_list = {}
@@ -73,6 +75,7 @@ export async function Get_TDX_Live({ useExistToken = true }) {
                 let travel_speed = item.TravelSpeed
                 Live_Congestion_list[section_id] = [level, update_time, Update_Interval, travel_time, travel_speed]
             })
+
             //console.log(Live_Congestion_list)
 
             // 3. 儲存各個路段ID的路段資訊
@@ -91,32 +94,34 @@ export async function Get_TDX_Live({ useExistToken = true }) {
             }
             SectionShapes_list.forEach((item) => {
                 let Section_Name = section_list[item.SectionID] // 路段名稱
-                let Live_Congestion = Live_Congestion_list[item.SectionID]; // 取得壅塞等級
+                let Live_Congestion = Live_Congestion_list[item.SectionID]; // 取得當前路段的總壅塞資訊
                 //let random_num = Math.round(((Math.random() * 4) + 1)) + '';
                 //console.log(random_num)
-                let congestion_info = Congestion_color[Live_Congestion[0]] // 取得壅塞等級對應的壅塞資訊
-                let update_time = new Date(Live_Congestion[1]).addHours(8) // 取得更新時間
-                let update_interval = Live_Congestion[2] // 更新頻率
-                let travel_time = Live_Congestion[3] // 旅行時間
-                let travel_speed = Live_Congestion[4] // 旅行速度
-                if (travel_speed == 250) {
-                    congestion_info = Congestion_color['-1']
+                if (Live_Congestion?.length > 0){
+                    let congestion_info = Congestion_color[Live_Congestion[0]] // 取得壅塞等級對應的壅塞資訊
+                    let update_time = new Date(Live_Congestion[1]).addHours(8) // 取得更新時間
+                    let update_interval = Live_Congestion[2] // 更新頻率
+                    let travel_time = Live_Congestion[3] // 旅行時間
+                    let travel_speed = Live_Congestion[4] // 旅行速度
+                    if (travel_speed == 250) {
+                        congestion_info = Congestion_color['-1']
+                    }
+                    Section_GeoJSON.features.push({
+                        "type": "Feature",
+                        "properties": {
+                            "name": Section_Name,
+                            "id": item.SectionID,
+                            "describe": congestion_info[0],
+                            "color": congestion_info[1],
+                            //"congestion_level": Live_Congestion[0],
+                            "update_time": update_time,
+                            "update_interval": update_interval,
+                            "travel_time": travel_time,
+                            "travel_speed": travel_speed
+                        },
+                        "geometry": { "type": "MultiLineString", "coordinates": [item.Geometry] }
+                    })
                 }
-                Section_GeoJSON.features.push({
-                    "type": "Feature",
-                    "properties": {
-                        "name": Section_Name,
-                        "id": item.SectionID,
-                        "describe": congestion_info[0],
-                        "color": congestion_info[1],
-                        //"congestion_level": Live_Congestion[0],
-                        "update_time": update_time,
-                        "update_interval": update_interval,
-                        "travel_time": travel_time,
-                        "travel_speed": travel_speed
-                    },
-                    "geometry": { "type": "MultiLineString", "coordinates": [item.Geometry] }
-                })
             })
             //console.log(Section_GeoJSON)
 
