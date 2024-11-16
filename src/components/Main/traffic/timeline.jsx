@@ -261,10 +261,10 @@ const Timeline = () => {
 
     return ((
         <div className="w-full">
-            <div className="relative rounded-full mb-2 select-none">
+            <div className="absolute bottom-[20px] rounded-full mb-2 select-none">
                 <form className="grid w-fit">
-                    {//isShowHistory &&
-                        (<div className={`grid bg-gray-300 border-[2px] border-gray-100 grid-cols-auto sm:grid-cols-7 mb-2 rounded-lg gap-1 w-max ${isShowHistory ? 'opacity-100' : 'opacity-0 '} transition-all ease-in-out duration-100`}>
+                    {
+                        (<div className={`grid bg-gray-300 border-[2px] border-gray-100 grid-cols-auto sm:grid-cols-7 mb-2 rounded-lg gap-1 w-max ${isShowHistory ? 'opacity-100' : 'opacity-0'} transition-all ease-in-out duration-100`}>
                             {isShowHistory &&
                                 dayNames.map((day, index) => (
                                     <Button type="button" key={index} color="light" className="flex font-bold items-center border-gray-800 select-none" onClick={getButtonDay}>

@@ -244,22 +244,22 @@ const ChatBubble = () => {
                                         <div className={`inline-block px-2 py-1 rounded-lg ${group.sender === 'user' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-black'}`}>
                                             <div className='max-w-sm flex flex-wrap flex-auto text-ellipsis overflow-hidden' dangerouslySetInnerHTML={{ __html: marked.parse(msg.text) }}></div>
                                             {/*
-                                        <div className="text-right">
-                                            {group.sender === 'bot' && (
-                                                <div className="inline-flex mt-2 space-x-2 bg-orange-100 rounded-lg px-2 py-0.5">
-                                                    {['👍', '❤️', '👎'].map(reaction => (
-                                                        <button
-                                                            key={reaction}
-                                                            onClick={() => addReaction(groupIndex, msg.id, reaction)}
-                                                            className={`text-xs bg-orange-400 p-1 rounded-full hover:opacity-100 ${msg.reactions && msg.reactions.includes(reaction) ? 'opacity-100' : 'opacity-50'}`}
-                                                        >
-                                                            {reaction}
-                                                        </button>
-                                                    ))}
+                                                <div className="text-right">
+                                                    {group.sender === 'bot' && (
+                                                        <div className="inline-flex mt-2 space-x-2 bg-orange-100 rounded-lg px-2 py-0.5">
+                                                            {['👍', '❤️', '👎'].map(reaction => (
+                                                                <button
+                                                                    key={reaction}
+                                                                    onClick={() => addReaction(groupIndex, msg.id, reaction)}
+                                                                    className={`text-xs bg-orange-400 p-1 rounded-full hover:opacity-100 ${msg.reactions && msg.reactions.includes(reaction) ? 'opacity-100' : 'opacity-50'}`}
+                                                                >
+                                                                    {reaction}
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    )}
                                                 </div>
-                                            )}
-                                        </div>
-                                        */}
+                                            */}
                                         </div>
                                         {msgIndex === (group.messages.length - 1) && (
                                             <p className="text-sm mt-1 opacity-80">

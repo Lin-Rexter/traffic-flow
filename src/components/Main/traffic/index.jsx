@@ -75,6 +75,7 @@ const HomePage = () => {
                         </div>
                     </div>
                 )*/}
+                    {/* 互動式壅塞地圖 */}
                     <Suspense fallback={(
                         <div className="flex h-auto">
                             <div className="inline-flex m-auto items-center px-4 py-2 font-semibold leading-6 text-md shadow rounded-md text-white bg-indigo-500 hover:bg-indigo-400 transition ease-in-out duration-150 cursor-not-allowed">
@@ -95,7 +96,7 @@ const HomePage = () => {
                     </div>
 
                     {/* AI助手 */}
-                    <div className="fixed bottom-[135px] md:bottom-24 right-4 w-auto">
+                    <div className="fixed bottom-[140px] md:bottom-24 right-4 w-auto">
                         {<DynamicChatBubble /> || <Skeleton count={5} />}
                     </div>
                 </div>

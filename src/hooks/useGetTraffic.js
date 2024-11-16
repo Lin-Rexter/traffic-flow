@@ -80,7 +80,6 @@ export const useGetTraffic = (disabled = false, useExistToken = true, time = [])
 
     var fetch_error_reply = '非常抱歉，目前無法取得資料，請再次重整網頁，如未改善請聯絡網站管理員!' // 當非 IsDisconnect 或 IsAPIRateLimit 狀況時，給使用者的警告訊息。
 
-
     const fetcher = async (url) => {
         const res = await fetch(url)
         const res_data = await res.json()
