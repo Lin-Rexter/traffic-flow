@@ -1,3 +1,5 @@
+## 台灣國道壅塞預測
+
 此專案由 [Next.js](https://nextjs.org/) 結合 [Tailwind CSS](https://tailwindcss.com/) 所建構，並利用 [Nixtla TimeGPT-1](https://docs.nixtla.io/docs/getting-started-about_timegpt) 時序模型將預測結果、歷史、即時資料，利用資料視覺化工具 [Deck.gl](https://deck.gl/) 於基底地圖服務 [Mapbox](https://visgl.github.io/react-map-gl/docs/api-reference/map) 上互動式地呈現交通壅塞狀況，使用戶能一目瞭然地知曉台灣各地國道的雍塞情形，並搭配了搭載 [Llama 3.2 (採用Ollama所提供)](https://ollama.com/library/llama3.2) LLM 模型結合 [RAG (採用LangChain框架)](https://js.langchain.com/docs/integrations/chat/ollama/) 與 Prompt engineering 技術的AI助手功能讓用戶利用文字或語音來向AI詢問雍塞問題等互動。
 
 ## Getting Started
