@@ -25,3 +25,7 @@ You can start editing the page by modifying `app/page.jsx`. The page auto-update
   > ![image](https://github.com/user-attachments/assets/4e298799-9d90-4978-a561-1d57d5fed367)
 
 </details>
+
+## Repo Activity
+
+![Alt](https://repobeats.axiom.co/api/embed/99feab9dfff0ceb6f61d988efd2b5e75e8ce2aeb.svg "Repobeats analytics image")
