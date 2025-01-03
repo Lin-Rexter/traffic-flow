@@ -12,6 +12,7 @@ const nextConfig = {
             },
         ],
     },
+    //cacheHandler: require.resolve('./cache-handler.js')
 };
 
 export default nextConfig;

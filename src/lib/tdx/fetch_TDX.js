@@ -83,10 +83,10 @@ export default async function Fetch_Data({ AccessToken = '', Token_Expires = 0, 
 
                         return data
                     }).catch((err) => {
-                        fetch_error.push(err)
+                        fetch_error.push(String(err.message))
                         // 防止錯誤訊息為內部引起
                         try {
-                            const err_msg = err.message.split(',')[1].split('\"')[1].trim()
+                            const err_msg = err?.message?.split(',')?.[1]?.split('\"')?.[1].trim()
                             console.error('\n[fetch_TDX]請求TDX資料錯誤:', err_msg);
                             fetch_error_format.push(HTTP_Status_Code[fetch_status_code]['reply'][err_msg])
                         } catch (e) {

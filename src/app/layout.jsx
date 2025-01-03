@@ -85,14 +85,15 @@ export default function RootLayout({ children }) {
                                 <DynamicHeader />
 
                                 <div className="grid grid-flow-row-dense grid-rows-1 h-full">
-                                    <DynamicMain children={children} />
-
+                                    <DynamicMain>
+                                        {children}
+                                    </DynamicMain>
                                     <DynamicFooter />
                                 </div>
                             </div>
                         </Providers>
                     </Suspense>
-                    <script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.js" crossOrigin="anonymous"></script>
+                    <Script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.js" crossOrigin="anonymous" async />
                 </body>
             </html>
         </ClerkProvider>

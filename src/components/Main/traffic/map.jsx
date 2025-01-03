@@ -116,7 +116,7 @@ const LocationAggregatorMap = ({ off, useExistToken }) => {
     useEffect(() => {
         if (data) {
             //console.log(data.data?.features[0]?.properties?.update_time)
-            data = ((Object.keys(data.data).length == 1) || !data.error) ? data.data : null
+            const Data = ((Object.keys(data.data).length == 1) || !data.error) ? data.data : null
 
             // 取得緩存在localStorage的壅塞資料
             const cache_data = window.localStorage.getItem("map_data");
@@ -124,18 +124,18 @@ const LocationAggregatorMap = ({ off, useExistToken }) => {
             // 當無緩存資料或有最新資料時，儲存至local
             const cache_data_time = new Date(JSON.parse(cache_data)?.features[0]?.properties?.update_time).addHours(-8)
             const now_time = new Date().getTime()
-            if ((cache_data === null) || (cache_data !== JSON.stringify(data) || (cache_data_time < now_time))) {
+            if ((cache_data === null) || (cache_data !== JSON.stringify(Data) || (cache_data_time < now_time))) {
                 const location_time = new Date().toLocaleString('zh-Hant-TW');
                 console.log(`${location_time}: 壅塞資料已更新! (每60秒)`);
 
-                window.localStorage.setItem("map_data", JSON.stringify(data));
+                window.localStorage.setItem("map_data", JSON.stringify(Data));
             }
 
             // 當資料無效時或緩存資料存在時則使用緩存資料
-            if ((data === null) || (window.localStorage.getItem("map_data") !== null)) {
+            if ((Data === null) || (window.localStorage.getItem("map_data") !== null)) {
                 setMapData(JSON.parse(window.localStorage.getItem("map_data")))
             } else {
-                setMapData(data)
+                setMapData(Data)
             }
         } else {
             setMapData(JSON.parse(window.localStorage.getItem("map_data")))
@@ -159,7 +159,8 @@ const LocationAggregatorMap = ({ off, useExistToken }) => {
     `;
     }
 
-    const Update_info_component = (info, section_info) => {
+    // 包裝 Update_info_component 在 useCallback 中
+    const Update_info_component = useCallback((info, section_info) => {
         setCoordinate(info?.coordinate)
         setColor(section_info?.color)
         setDescribe(section_info?.describe)
@@ -170,7 +171,7 @@ const LocationAggregatorMap = ({ off, useExistToken }) => {
         setUpdate_interval(section_info?.update_interval)
         setUpdate_time(section_info?.update_time)
         setShowDrawer(true)
-    }
+    }, [setShowDrawer]); // 加入 setShowDrawer 作為相依性
 
     // 點擊路段傳遞資訊給側邊欄
     const onClick = useCallback((info, event) => {
@@ -178,7 +179,7 @@ const LocationAggregatorMap = ({ off, useExistToken }) => {
         if (section_info) {
             Update_info_component(info, section_info)
         }
-    }, []);
+    }, [Update_info_component]);
 
     // 搜尋路段結果範例
     /*
@@ -582,12 +583,12 @@ const LocationAggregatorMap = ({ off, useExistToken }) => {
         async function getLocation() {
             const prams_config = {
                 key: polstar_api_key,
-                locationbias: `point:${initialViewState.latitude},${initialViewState.longitude}`,
+                locationBias: `point:${initialViewState.latitude},${initialViewState.longitude}`,
                 input: search,
-                inputtype: 'textquery'
+                inputType: 'textquery'
             }
 
-            // 搜尋路段API URL
+            // 搜尋路段API URL (北宸導航 API)
             const api_url = 'https://mapi.polstarapis.com/maps/api/place/findplacefromtext/json?' + new URLSearchParams(prams_config).toString()
 
             await fetch(api_url, {
@@ -618,7 +619,7 @@ const LocationAggregatorMap = ({ off, useExistToken }) => {
         setTimeout(() => {
             getLocation()
         }, 1000);
-    }, [search]);
+    }, [search, initialViewState.latitude, initialViewState.longitude]);
 
     return (
         <div className="grid h-full w-full">
@@ -656,7 +657,7 @@ const LocationAggregatorMap = ({ off, useExistToken }) => {
                     {/* 搜尋路段 */}
                     <div className={`relative md:mr-2 mt-2`}>
                         <FloatingLabel variant="filled" label="搜尋路段..." sizing="md" value={search} onChange={e => setSearch(e.target.value)}
-                            className={`flex rounded rounded-lg h-auto select-none cursor-text text-xl ${searchSection ? "opacity-100 w-80" : "opacity-0 w-0"} transition-all ease-in-out duration-200`}
+                            className={`flex rounded-lg h-auto select-none cursor-text text-xl ${searchSection ? "opacity-100 w-80" : "opacity-0 w-0"} transition-all ease-in-out duration-200`}
                         />
                     </div>
                     {

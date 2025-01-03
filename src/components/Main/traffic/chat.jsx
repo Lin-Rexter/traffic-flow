@@ -98,10 +98,10 @@ const ChatBubble = () => {
         if (isTyping) {
             const Gemini_Output = async () => {
                 if (message) {
-                    setMessage('');
-
                     //let result = await gemini_ask(message)
                     let result = await langchain_ask(message)
+
+                    setMessage('');
 
                     if (result?.error) {
                         result.data = result?.error || '[系統錯誤] 次數過於頻繁，請稍後再次與AI互動!'
@@ -114,7 +114,7 @@ const ChatBubble = () => {
 
             Gemini_Output()
         }
-    }, [isTyping])
+    }, [isTyping, message])
 
     // 當有儲存AI回應時，觸發此函數(將AI回應顯示在聊天室裡)
     useEffect(() => {
@@ -289,7 +289,7 @@ const ChatBubble = () => {
                             value={message}
                             onChange={(e) => setMessage(e.target.value)}
                             placeholder="輸入訊息..."
-                            className="flex-grow p-2 text-lg border rounded bg-white text-black font-Naikai text-base w-full md:w-auto caret-blue-500"
+                            className="flex-grow p-2 text-base border rounded bg-white text-black font-Naikai w-full md:w-auto caret-blue-500"
                         />
                         <button
                             onMouseDown={startRecording}

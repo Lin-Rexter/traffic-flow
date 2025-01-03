@@ -1,7 +1,7 @@
 'use client'
 import { Button, Toast } from "flowbite-react";
 
-export const Toast_Component = ({ icon_text, title, contents, durations = 0, showExit = true }) => {
+export const Toast_Component = ({ icon_text, title, contents, durations = 1000, showExit = true }) => {
     return (
         <Toast duration={durations} className="fixed top-20 left-1/2 transform -translate-x-1/2 mt-4 w-full md:w-full">
             <div className="flex flex-row items-center justify-center space-x-3 z-[9998] w-full">
