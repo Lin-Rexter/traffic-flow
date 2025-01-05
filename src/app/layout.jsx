@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { Analytics } from '@vercel/analytics/next';
 import dynamic from "next/dynamic";
 import Script from 'next/script'
 //import Link from 'next/link'
@@ -96,6 +97,7 @@ export default function RootLayout({ children }) {
                                 </div>
                             </Providers>
                         </Suspense>
+                        <Analytics />
                         <Script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.js" crossOrigin="anonymous" async />
                     </body>
                 </html>
