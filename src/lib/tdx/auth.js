@@ -28,11 +28,11 @@ export default async function GetToken(id, secret, test = false) {
     }
 
     const cookieStore = await cookies()
-    var TDX_Access_token = process.env.NEXT_PUBLIC_TDX_ACCESS_TOKEN
+    var TDX_Access_token = process.env.TDX_ACCESS_TOKEN
 
     if (test) {
         if (!TDX_Access_token) {
-            throw new Error("\n ⚠️ 已設置使用現有Access token，但.env.local檔案裡未設定環境變數(NEXT_PUBLIC_TDX_ACCESS_TOKEN)。\n")
+            throw new Error("\n ⚠️ 已設置使用現有Access token，但.env.local檔案裡未設定環境變數(TDX_ACCESS_TOKEN)。\n")
         }
         Response.AccessToken = TDX_Access_token
         Response.Expires_ms = -1
@@ -114,7 +114,7 @@ export default async function GetToken(id, secret, test = false) {
             cookieStore.set('tdx_token_expires_in', String(expiration_date), { maxAge: expires }) // 儲存有效期限至cookie
 
             // 儲存Access Token
-            setEnvValue('NEXT_PUBLIC_TDX_ACCESS_TOKEN', token)
+            setEnvValue('TDX_ACCESS_TOKEN', token)
 
             Response.AccessToken = token
             Response.Expires_ms = expires

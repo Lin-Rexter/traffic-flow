@@ -1,9 +1,21 @@
-import React, { createContext, useState, useContext } from 'react';
+"use client"
+import React, { createContext, useState, useContext, useEffect } from 'react';
 
+const ENVContext = createContext();
 const TimeContext = createContext();
 const DrawerContext = createContext();
 
-// 跨組件共享變數
+// = = = = = 跨組件共享變數 = = = = =
+export const ENVProvider = ({ children }) => {
+    const [ENVConfig, setENVConfig] = useState(null);
+
+    return (
+        <ENVContext.Provider value={{ ENVConfig, setENVConfig }}>
+            {children}
+        </ENVContext.Provider>
+    );
+};
+
 export const TimeProvider = ({ children }) => {
     const [selectedTime, setSelectedTime] = useState([0, null]);
 
@@ -24,7 +36,15 @@ export const DrawerProvider = ({ children }) => {
     );
 };
 
-// 取得共享變數內容
+// = = = = = 取得共享變數內容 = = = = =
+export const useENV = () => {
+    const context = useContext(ENVContext);
+    if (!context) {
+        throw new Error('useENV must be used within a ENVProvider');
+    }
+    return context;
+};
+
 export const useTime = () => {
     const context = useContext(TimeContext);
     if (!context) {

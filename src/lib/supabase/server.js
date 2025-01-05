@@ -6,8 +6,8 @@ export async function createClient(supabase_url=null, supabase_key=null) {
     const cookieStore = await cookies()
 
     return createServerClient(
-        supabase_url ?? process.env.NEXT_PUBLIC_SUPABASE_URL,
-        supabase_key ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+        supabase_url ?? process.env.SUPABASE_URL,
+        supabase_key ?? process.env.SUPABASE_ANON_KEY,
         {
             cookies: {
                 getAll() {

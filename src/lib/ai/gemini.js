@@ -1,16 +1,27 @@
-import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
+"use server"
+const {
+    GoogleGenerativeAI,
+    HarmCategory,
+    HarmBlockThreshold,
+    GoogleSearchRetrievalTool
+} = require("@google/generative-ai");
 
 
-const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;;
+const apiKey = process.env.GEMINI_API_KEY;;
 const genAI = new GoogleGenerativeAI(apiKey);
 
 const model = genAI.getGenerativeModel({
-    model: "gemini-1.5-pro-002",
+    model: "gemini-2.0-flash-exp",
+    tools: [
+        {
+            googleSearch: {},
+        },
+    ],
 });
 
 const generationConfig = {
-    temperature: 1,
-    topP: 0.95, 
+    temperature: 0.3,
+    topP: 0.5,
     topK: 40,
     maxOutputTokens: 8192,
     responseMimeType: "text/plain",
@@ -18,8 +29,6 @@ const generationConfig = {
 
 const chatSession = model.startChat({
     generationConfig,
-    // safetySettings: Adjust safety settings
-    // See https://ai.google.dev/gemini-api/docs/safety-settings
     history: [
     ],
 });
@@ -31,11 +40,11 @@ export async function gemini_ask(ask) {
         error: null
     }
 
-    try{
+    try {
         const result = await chatSession.sendMessage(ask);
 
         response_dict.data = result.response.text()
-    }catch(e){
+    } catch (e) {
         console.log(e.message)
         response_dict.error = e.message
     }

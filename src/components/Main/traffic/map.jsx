@@ -17,7 +17,7 @@ import { Layer_GeoJson } from "@/lib/map/layers.js"
 import { Toast_Component } from "@/components/utils/toast";
 import { Info_Component } from "@/components/Main/traffic/info_drawer.jsx";
 import { useGetTraffic } from "@/hooks/useGetTraffic";
-import { useTime, useDrawer } from "@/context";
+import { useENV, useTime, useDrawer } from "@/context";
 //import { Client } from "@googlemaps/google-maps-services-js";
 
 
@@ -26,22 +26,17 @@ Date.prototype.addHours = function (h) {
     return this;
 }
 
-// 取得MapBox金鑰
-const mapbox_api_key = process.env.NEXT_PUBLIC_MAPBOX_TOKENS;
-const mapbox_style = process.env.NEXT_PUBLIC_MAPBOX_STYLE
-
-// 取得 Polstar北宸科技地圖服務 API 金鑰
-const polstar_api_key = process.env.NEXT_PUBLIC_POLSTAR_API_KEY;
-
 
 const LocationAggregatorMap = ({ off, useExistToken }) => {
+    // 取得環境變數
+    const { ENVConfig, SetENVConfig } = useENV();
     // 取得時間軸指定日期
     const { selectedTime } = useTime();
     // 取得開啟壅塞詳細側邊欄狀態
     const { showDrawer, setShowDrawer } = useDrawer();
 
     // 儲存使用者經緯度
-    const [location, setLocation] = useState(null);
+    const [location, setLocation] = useState();
 
     // 儲存觀看座標、縮放等資訊
     const [initialViewState, setInitialViewState] = useState(INITIAL_VIEW_STATE.SF);
@@ -66,7 +61,19 @@ const LocationAggregatorMap = ({ off, useExistToken }) => {
     const [searchResult, setSearchResult] = useState([]);
 
     // 儲存動畫過渡狀態
-    const [isTransition, setIsTransition] = useState(false);
+    //const [isTransition, setIsTransition] = useState(false);
+
+    const [messages, setMessages] = useState("");
+
+    if (ENVConfig) {
+        // 取得MapBox金鑰
+        var mapbox_api_key = ENVConfig.mapbox.token;
+        var mapbox_style = ENVConfig.mapbox.style;
+
+        // 取得 Polstar北宸科技地圖服務 API 金鑰
+        var polstar_api_key = ENVConfig.polstar.key;
+    }
+
 
     // 更新初始座標起始點(如果已儲存使用者位置)
     useEffect(() => {
@@ -92,8 +99,11 @@ const LocationAggregatorMap = ({ off, useExistToken }) => {
                 // 儲存至LocalStorage
                 window.localStorage.setItem("UserLocation", JSON.stringify(INITIAL_VIEW_STATE.NYC))
             })
+        } else {
+            setLocation(INITIAL_VIEW_STATE.SF);
         }
     }
+
     useEffect(() => {
         getCurrentPosition()
     }, []);
@@ -192,45 +202,6 @@ const LocationAggregatorMap = ({ off, useExistToken }) => {
                         "short_name": "34號",
                         "types": [
                             "street_number"
-                        ]
-                    },
-                    {
-                        "long_name": "台元街",
-                        "short_name": "台元街",
-                        "types": [
-                            "route"
-                        ]
-                    },
-                    {
-                        "long_name": "竹北里",
-                        "short_name": "竹北里",
-                        "types": [
-                            "administrative_area_level_4",
-                            "political"
-                        ]
-                    },
-                    {
-                        "long_name": "竹北市",
-                        "short_name": "竹北市",
-                        "types": [
-                            "administrative_area_level_3",
-                            "political"
-                        ]
-                    },
-                    {
-                        "long_name": "新竹縣",
-                        "short_name": "新竹縣",
-                        "types": [
-                            "administrative_area_level_2",
-                            "political"
-                        ]
-                    },
-                    {
-                        "long_name": "台灣",
-                        "short_name": "TW",
-                        "types": [
-                            "country",
-                            "political"
                         ]
                     },
                     {
@@ -619,7 +590,7 @@ const LocationAggregatorMap = ({ off, useExistToken }) => {
         setTimeout(() => {
             getLocation()
         }, 1000);
-    }, [search, initialViewState.latitude, initialViewState.longitude]);
+    }, [search, initialViewState]);
 
     return (
         <div className="grid h-full w-full">
@@ -719,14 +690,21 @@ const LocationAggregatorMap = ({ off, useExistToken }) => {
                     color="blue"
                     className={`flex select-none order-first md:order-none font-bold items-center border-[2px] border-gray-800 h-fit w-fit z-[9998]`}
                     onClick={() => {
-                        //getCurrentPosition();
-                        setInitialViewState({
-                            longitude: location.longitude,
-                            latitude: location.latitude,
-                            zoom: 18,
-                            transitionInterpolator: new FlyToInterpolator({ speed: 2 }),
-                            transitionDuration: 'auto',
-                        });
+                        if (location) {
+                            //getCurrentPosition();
+                            setInitialViewState({
+                                longitude: location?.longitude,
+                                latitude: location?.latitude,
+                                zoom: 18,
+                                transitionInterpolator: new FlyToInterpolator({ speed: 2 }),
+                                transitionDuration: 'auto',
+                            });
+                        } else {
+                            setMessages("尚未啟用位置權限")
+                            setTimeout(() => {
+                                setMessages(null)
+                            }, 1500)
+                        }
                     }}
                 >
                     <div className="flex flex-col justify-center items-center p-0 m-0" >
@@ -746,6 +724,15 @@ const LocationAggregatorMap = ({ off, useExistToken }) => {
                     travel_time={travel_time}
                     update_interval={update_interval}
                     update_time={update_time}
+                />
+            }
+            {
+                messages &&
+                <Toast_Component
+                    icon_text={"系統訊息"}
+                    title={"系統訊息"}
+                    contents={messages}
+                    showExit={false}
                 />
             }
             {

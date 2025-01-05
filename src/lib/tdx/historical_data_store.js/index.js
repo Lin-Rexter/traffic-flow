@@ -24,8 +24,8 @@ export async function Store_TDX_Historical({ date, useExistToken = true }) {
 
     try {
         // = = = = = = = = Authorizations = = = = = = = =
-        const Client_ID = process.env.NEXT_PUBLIC_Client_ID;
-        const Client_Secret = process.env.NEXT_PUBLIC_Client_Secret
+        const Client_ID = process.env.Client_ID;
+        const Client_Secret = process.env.Client_Secret
         const AccessToken_info = await GetAccessToken(Client_ID, Client_Secret, useExistToken)
 
         // = = = = = = = = 取得資料 = = = = = = = =

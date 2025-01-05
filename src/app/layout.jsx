@@ -1,17 +1,19 @@
 import { Suspense } from "react";
 import dynamic from "next/dynamic";
 import Script from 'next/script'
-import Link from 'next/link'
+//import Link from 'next/link'
 import { Inter } from "next/font/google";
 import localFont from 'next/font/local'
 import "@/styles/globals.css";
-import { ThemeProvider } from 'next-themes'
+//import { ThemeProvider } from 'next-themes'
 import NextTopLoader from 'nextjs-toploader';
 import { Providers } from './providers'
 import Loading from "./loading";
 import { ClerkProvider } from '@clerk/nextjs'
 import { zhTW } from '@clerk/localizations'
 import 'react-loading-skeleton/dist/skeleton.css'
+import { ENVProvider } from "@/context";
+
 
 const DynamicHeader = dynamic(
     () => import('@/components/Header'),
@@ -50,26 +52,27 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
     return (
-        <ClerkProvider dynamic localization={zhTW}>
-            <html lang="zh-Hant-TW" className={myFont.className} suppressHydrationWarning>
-                <head>
-                    <link href="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.css" rel="stylesheet" />
-                </head>
-                <body className="h-screen">
-                    <Suspense fallback={<Loading />} className={inter.className}>
-                        <Providers>
-                            {/* 載入進度條 */}
-                            <NextTopLoader
-                                color="#2299DD"
-                                initialPosition={0.08}
-                                crawlSpeed={200}
-                                height={7}
-                                crawl={true}
-                                showSpinner={true}
-                                easing="ease"
-                                speed={200}
-                                shadow="0 0 10px #2299DD,0 0 5px #2299DD"
-                                template='
+        <ENVProvider>
+            <ClerkProvider dynamic localization={zhTW}>
+                <html lang="zh-Hant-TW" className={myFont.className} suppressHydrationWarning>
+                    <head>
+                        <link href="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.css" rel="stylesheet" />
+                    </head>
+                    <body className="h-screen">
+                        <Suspense fallback={<Loading />} className={inter.className}>
+                            <Providers>
+                                {/* 載入進度條 */}
+                                <NextTopLoader
+                                    color="#2299DD"
+                                    initialPosition={0.08}
+                                    crawlSpeed={200}
+                                    height={7}
+                                    crawl={true}
+                                    showSpinner={true}
+                                    easing="ease"
+                                    speed={200}
+                                    shadow="0 0 10px #2299DD,0 0 5px #2299DD"
+                                    template='
                                     <div class="bar" role="bar">
                                         <div class="peg">
                                     </div>
@@ -77,26 +80,27 @@ export default function RootLayout({ children }) {
                                         <div class="spinner" role="spinner">
                                         <div class="spinner-icon"></div>
                                     </div>'
-                                zIndex={1600}
-                                showAtBottom={false}
-                            />
+                                    zIndex={1600}
+                                    showAtBottom={false}
+                                />
 
-                            <div className="h-full grid grid-flow-row-dense grid-rows-auto grid-cols-auto">
-                                <DynamicHeader />
+                                <div className="h-full grid grid-flow-row-dense grid-rows-auto grid-cols-auto">
+                                    <DynamicHeader />
 
-                                <div className="grid grid-flow-row-dense grid-rows-1 h-full">
-                                    <DynamicMain>
-                                        {children}
-                                    </DynamicMain>
-                                    <DynamicFooter />
+                                    <div className="grid grid-flow-row-dense grid-rows-1 h-full">
+                                        <DynamicMain>
+                                            {children}
+                                        </DynamicMain>
+                                        <DynamicFooter />
+                                    </div>
                                 </div>
-                            </div>
-                        </Providers>
-                    </Suspense>
-                    <Script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.js" crossOrigin="anonymous" async />
-                </body>
-            </html>
-        </ClerkProvider>
+                            </Providers>
+                        </Suspense>
+                        <Script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.js" crossOrigin="anonymous" async />
+                    </body>
+                </html>
+            </ClerkProvider>
+        </ENVProvider>
     );
 }
 
