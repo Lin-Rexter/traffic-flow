@@ -50,7 +50,8 @@
     "redux": "^5.0.1",
     "styled-components": "^6.1.13",
     "swr": "^2.3.0",
-    "tiktoken": "^1.0.18"
+    "tiktoken": "^1.0.18",
+    "vercel": "^39.2.5"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
