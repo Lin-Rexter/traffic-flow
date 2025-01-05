@@ -18,8 +18,8 @@ export async function Get_TDX_Live({ useExistToken = true }) {
 
     try {
         // = = = = = = = = Authorizations = = = = = = = =
-        const Client_ID = process.env.Client_ID;
-        const Client_Secret = process.env.Client_Secret
+        const Client_ID = process.env.TDX_CLIENT_ID;
+        const Client_Secret = process.env.TDX_CLIENT_SECRET;
         const AccessToken_info = await GetAccessToken(Client_ID, Client_Secret, useExistToken)
 
         // = = = = = = = = 取得資料 = = = = = = = =
