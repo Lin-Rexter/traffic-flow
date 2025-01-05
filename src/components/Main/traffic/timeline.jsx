@@ -229,8 +229,6 @@ const Timeline = () => {
         // 初始化filterTimeList
         setFilterTimeList([])
 
-        setMessage(null)
-
         setIsShowFuture(!isShowFuture);
 
         let new_timeMakers = timeMarkers.filter((item) => item.value > 0)
@@ -241,6 +239,9 @@ const Timeline = () => {
         } else {
             console.warn("暫時無未來之預測資料")
             setMessage("暫時無未來之預測資料")
+            setTimeout(() => {
+                setMessage(null)
+            }, 1500)
         }
     }
 
@@ -344,7 +345,7 @@ const Timeline = () => {
                         icon_text={"系統訊息"}
                         title={"系統訊息"}
                         contents={message}
-                        //showExit={false}
+                        showExit={false}
                         //durations={1000}
                     />
                 )

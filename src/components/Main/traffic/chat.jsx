@@ -4,8 +4,8 @@ import { FaSmile, FaSearch, FaPaperclip } from 'react-icons/fa';
 import { Button, Popover } from "flowbite-react";
 import { IoMdClose } from "react-icons/io";
 import { MdKeyboardVoice } from "react-icons/md";
-//import { gemini_ask } from '@/lib/ai/gemini'
-import { langchain_ask } from '@/lib/ai/langchain';
+import { gemini_ask } from '@/lib/ai/gemini'
+//import { langchain_ask } from '@/lib/ai/langchain';
 import { Effect } from 'deck.gl';
 import { marked } from 'marked';
 
@@ -98,10 +98,12 @@ const ChatBubble = () => {
         if (isTyping) {
             const Gemini_Output = async () => {
                 if (message) {
-                    //let result = await gemini_ask(message)
-                    let result = await langchain_ask(message)
+                    let gemini_msg = message;
 
                     setMessage('');
+
+                    let result = await gemini_ask(gemini_msg)
+                    //let result = await langchain_ask(message)
 
                     if (result?.error) {
                         result.data = result?.error || '[系統錯誤] 次數過於頻繁，請稍後再次與AI互動!'
