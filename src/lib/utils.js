@@ -53,13 +53,18 @@ export const DiffDays = (date1, date2) => {
 
 // 編輯Env檔環境變數
 export const setEnvValue = (key, value) => {
-    const ENV_VARS = fs.readFileSync(path.join(process.cwd(), '/.env.local'), "utf8").split(os.EOL);
+    try {
+        const ENV_VARS = fs.readFileSync(path.join(process.cwd(), '/.env.local'), "utf8").split(os.EOL);
 
-    const target = ENV_VARS.indexOf(ENV_VARS.find((line) => {
-        return line.match(new RegExp(key));
-    }));
+        const target = ENV_VARS.indexOf(ENV_VARS.find((line) => {
+            return line.match(new RegExp(key));
+        }));
 
-    ENV_VARS.splice(target, 1, `${key} = '${value}'`);
+        ENV_VARS.splice(target, 1, `${key} = '${value}'`);
 
-    fs.writeFileSync(path.join(process.cwd(), '/.env.local'), ENV_VARS.join(os.EOL));
+        fs.writeFileSync(path.join(process.cwd(), '/.env.local'), ENV_VARS.join(os.EOL));
+    } catch (e) {
+        console.log("無法讀取 .env.local 環境變數檔");
+        process.env.TDX_ACCESS_TOKEN = value
+    }
 }
