@@ -67,7 +67,7 @@ const LocationAggregatorMap = ({ off, useExistToken }) => {
 
     if (ENVConfig) {
         // 取得MapBox金鑰
-        var mapbox_api_key = ENVConfig.mapbox.token;
+        var mapbox_api_key = ENVConfig.mapbox.token
         var mapbox_style = ENVConfig.mapbox.style;
 
         // 取得 Polstar北宸科技地圖服務 API 金鑰
@@ -606,19 +606,21 @@ const LocationAggregatorMap = ({ off, useExistToken }) => {
                 touchAction='unset'
             >
                 {/* 以MapBox地圖為基底 */}
-                <Map
-                    className=""
-                    controller={true}
-                    mapboxAccessToken={mapbox_api_key}
-                    mapStyle={mapbox_style}
-                    onRender={(event) => event.target.resize()}
-                >
-                    <Marker
-                        longitude={location ? location.longitude : initialViewState.longitude}
-                        latitude={location ? location.latitude : initialViewState.latitude}
-                        color="red"
-                    />
-                </Map>
+                {
+                    mapbox_api_key && (<Map
+                        className=""
+                        controller={true}
+                        mapboxAccessToken={mapbox_api_key}
+                        mapStyle={mapbox_style}
+                        onRender={(event) => event.target.resize()}
+                    >
+                        <Marker
+                            longitude={location ? location.longitude : initialViewState.longitude}
+                            latitude={location ? location.latitude : initialViewState.latitude}
+                            color="red"
+                        />
+                    </Map>)
+                }
             </DeckGL>
             {/* 搜尋輸入框 */}
             <div className='fixed right-2 mt-2 flex flex-col md:flex-row flex-wrap md:flex-nowrap flex-auto justify-end items-end md:items-center w-auto sm:max-w-lg md:max-w-md lg:max-w-md'>
